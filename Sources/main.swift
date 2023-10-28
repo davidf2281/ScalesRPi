@@ -8,39 +8,6 @@
 import Foundation
 import ScalesCore
 
-MainThing.doThing()
-
-struct MainThing {
-    static func doThing() {
-        print("Environment: \(ProcessInfo.processInfo.environment)")
-        
-        let readingsProvider = RPiReadingProvider()
-        let readingProcessor = ScalesCore.ReadingProcessor(readingProvider: readingsProvider, display: RPiDisplay(width: 320, height: 240))
-        readingsProvider.start()
-    }
-}
-
-class RPiReadingProvider: ScalesCore.ReadingProvider {
-    var delegate: ScalesCore.ReadingProviderDelegate?
-    
-    func start() {
-        self.delegate?.didGetReading(0.0)
-    }
-}
-
-struct RPiDisplay: ScalesCore.Display {
-    
-    init(width: CGFloat, height: CGFloat) {
-        // TODO: Implement me
-    }
-    
-    var font: ScalesCore.Font?
-    
-    func drawText(_ text: String, x: CGFloat, y: CGFloat) {
-        print("Something tried to draw some text")
-    }
-}
-
 // Setup shutdown handlers to handle SIGINT and SIGTERM
 // https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime
 let signalQueue = DispatchQueue(label: "shutdown")
@@ -68,3 +35,41 @@ makeSignalSource(SIGINT)
 if ProcessInfo.processInfo.environment["BALENA"] == "1" {
     RunLoop.main.run()
 }
+
+let thing = MainThing()
+
+struct MainThing {
+    let readingsProvider = RPiReadingProvider()
+    let display = RPiDisplay(width: 320, height: 240)
+    let readingProcessor: ScalesCore.ReadingProcessor
+    init() {
+        self.readingProcessor = ScalesCore.ReadingProcessor(readingProvider: readingsProvider, display: display)
+        readingsProvider.start()
+    }
+}
+
+class RPiReadingProvider: ScalesCore.ReadingProvider {
+    var delegate: ScalesCore.ReadingProviderDelegate?
+    
+    private var timer: Timer?
+    
+    func start() {
+        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+            self.delegate?.didGetReading(0.0)
+        }
+    }
+}
+
+struct RPiDisplay: ScalesCore.Display {
+    
+    init(width: CGFloat, height: CGFloat) {
+        // TODO: Implement me
+    }
+    
+    var font: ScalesCore.Font?
+    
+    func drawText(_ text: String, x: CGFloat, y: CGFloat) {
+        print("Something tried to draw some text")
+    }
+}
+
