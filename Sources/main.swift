@@ -32,9 +32,12 @@ makeSignalSource(SIGINT)
 //
 // Otherwise the container will be repeatedly restarted by balena.
 // https://www.balena.io/docs/learn/develop/runtime
-if ProcessInfo.processInfo.environment["BALENA"] == "1" {
-    RunLoop.main.run()
-}
+//if ProcessInfo.processInfo.environment["BALENA"] == "1" {
+//    RunLoop.main.run()
+//}
+
+RunLoop.main.run()
+
 
 let thing = MainThing()
 
