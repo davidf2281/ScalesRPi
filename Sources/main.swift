@@ -57,6 +57,8 @@ class RPiReadingProvider: ScalesCore.ReadingProvider {
     private var timer: Timer?
     
     func start() {
+        print("Reading provider starting.")
+        self.delegate?.didGetReading(0.0)
         self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
             self.delegate?.didGetReading(0.0)
         }
