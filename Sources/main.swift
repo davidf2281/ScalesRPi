@@ -36,10 +36,9 @@ makeSignalSource(SIGINT)
 //    RunLoop.main.run()
 //}
 
-RunLoop.main.run()
-
-
 let thing = MainThing()
+
+RunLoop.main.run()
 
 struct MainThing {
     let readingsProvider = RPiReadingProvider()
