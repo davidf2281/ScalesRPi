@@ -46,6 +46,7 @@ struct MainThing {
     let display = RPiDisplay(width: 320, height: 240)
     let readingProcessor: ScalesCore.ReadingProcessor
     init() {
+        print("Main thing")
         self.readingProcessor = ScalesCore.ReadingProcessor(readingProvider: readingsProvider, display: display)
         readingsProvider.start()
     }
