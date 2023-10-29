@@ -24,6 +24,7 @@ struct MainThing {
     let display = RPiDisplay()
     let coordinator: ScalesCore.Coordinator
     init() {
+        print("ScalesRPi: Starting")
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
     }

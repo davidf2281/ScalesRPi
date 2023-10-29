@@ -3,8 +3,9 @@ import Foundation
 import ScalesCore
 
 struct RPiDisplay: ScalesCore.Display {
-    func render(commands: [ScalesCore.GraphicsContext.Command]) {
+    var width: Int { 320 }
+    var height: Int { 240 }
+    func showFrame(_ frameBuffer: FrameBuffer) {
         // TODO: Implement me
     }
 }
-

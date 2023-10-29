@@ -1,20 +1,18 @@
-// swift-tools-version:5.9
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "ScalesRPi",
-     products: [
+    platforms: [.macOS(.v12)],
+    products: [
         .executable(name: "scales", targets: ["ScalesRPi"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .executableTarget(
             name: "ScalesRPi",
             dependencies: [ .product(name: "ScalesCore",
