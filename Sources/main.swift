@@ -20,12 +20,12 @@ let thing = MainThing()
 RunLoop.main.run()
 
 struct MainThing {
-    let readingsProvider = RPiReadingProvider()
-    let display = RPiDisplay(width: 320, height: 240)
-    let readingProcessor: ScalesCore.ReadingProcessor
+    let sensor = RPiSensor()
+    let display = RPiDisplay()
+    let coordinator: ScalesCore.Coordinator
     init() {
-        self.readingProcessor = ScalesCore.ReadingProcessor(readingProvider: readingsProvider, display: display)
-        readingsProvider.start()
+        self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
+        sensor.start()
     }
 }
 

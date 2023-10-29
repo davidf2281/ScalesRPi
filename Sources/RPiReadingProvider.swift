@@ -2,8 +2,8 @@
 import Foundation
 import ScalesCore
 
-class RPiReadingProvider: ScalesCore.ReadingProvider {
-    var delegate: ScalesCore.ReadingProviderDelegate?
+class RPiSensor: ScalesCore.Sensor {
+    var delegate: ScalesCore.SensorDelegate?
     
     private var timer: Timer?
     
