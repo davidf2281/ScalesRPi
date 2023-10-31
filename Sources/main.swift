@@ -22,7 +22,7 @@ RunLoop.main.run()
 struct MainThing {
     let sensor = RPiSensor()
     let display = RPiDisplay()
-    let coordinator: ScalesCore.Coordinator
+    let coordinator: ScalesCore.Coordinator<RPiSensor>
     init() {
         print("ScalesRPi: Starting")
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))

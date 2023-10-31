@@ -7,5 +7,6 @@ struct RPiDisplay: ScalesCore.Display {
     var height: Int { 240 }
     func showFrame(_ frameBuffer: FrameBuffer) {
         // TODO: Implement me
+        print("Display has been instructed to show frame buffer")
     }
 }
