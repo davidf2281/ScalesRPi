@@ -26,8 +26,11 @@ struct MainThing {
     let coordinator: ScalesCore.Coordinator<RPiSensor>
     init() {
         print("ScalesRPi: Starting")
-        let blockSize = LinuxSPI.get_xfer3_block_size()
-        print("Blocksize: \(blockSize)")
+        let config: LinuxSPI.spi_config_t = .init(mode: 0, bits_per_word: 8, speed: 100000, delay: 0)
+        
+        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
+        LinuxSPI.spi_close(spifd)
+        print("Opened and closed SPI. Possibly.")
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
     }
