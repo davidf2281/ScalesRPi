@@ -7,6 +7,7 @@
 
 import Foundation
 import ScalesCore
+import LinuxSPI
 
 // Setup shutdown handlers to handle SIGINT and SIGTERM
 // https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime
@@ -25,6 +26,8 @@ struct MainThing {
     let coordinator: ScalesCore.Coordinator<RPiSensor>
     init() {
         print("ScalesRPi: Starting")
+        let blockSize = LinuxSPI.get_xfer3_block_size()
+        print("Blocksize: \(blockSize)")
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
     }
