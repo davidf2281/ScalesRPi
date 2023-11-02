@@ -34,7 +34,7 @@
 
 #include <linux/spi/spidev.h>
 
-#include "./include/spidev_lib.h"
+#include "./include/LinuxSPI.h"
 
 int spi_open(char *device, spi_config_t config) {
     int fd;
