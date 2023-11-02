@@ -1,6 +1,6 @@
 
 /* CREDIT: Adapted from https://github.com/doceme/py-spidev/blob/master/spidev_module.c */
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
