@@ -19,9 +19,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- * Adpated by Philippe Van Hecke <lemouchon@gmail.com>
+ *
+ * Adapted by Philippe Van Hecke <lemouchon@gmail.com>
+ *
+ * Adapted for integration into LinuxSPI by David Fearon <davidjohnfearon@gmail.com>
  */
 
+/* CREDIT: Adapted from code at https://github.com/milekium/spidev-lib */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -31,9 +35,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <string.h>
-
 #include <linux/spi/spidev.h>
-
 #include "./include/LinuxSPI.h"
 
 int spi_open(const char *device, spi_config_t config) {
