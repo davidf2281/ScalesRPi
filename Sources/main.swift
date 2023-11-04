@@ -31,12 +31,11 @@ struct MainThing {
 //        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
 //        LinuxSPI.spi_close(spifd)
 //        print("Opened and closed SPI. Possibly.")
-        
         let result = LinuxSPI.startPigpio()
         print("pigpio start result: \(LinuxSPI.startPigpio())")
         
         if result >= 0 {
-            print("pigpio stop result: \(LinuxSPI.stopPigpio(result))")
+            print("pigpio stop result: \(LinuxSPI.stopPigpio(pi: result))")
         }
         
         
