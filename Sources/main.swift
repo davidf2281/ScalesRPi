@@ -32,9 +32,13 @@ struct MainThing {
 //        LinuxSPI.spi_close(spifd)
 //        print("Opened and closed SPI. Possibly.")
         
+        let result = LinuxSPI.startPigpio()
         print("pigpio start result: \(LinuxSPI.startPigpio())")
         
-        print("pigpio stop result: \(LinuxSPI.stopPigpio())")
+        if result >= 0 {
+            print("pigpio stop result: \(LinuxSPI.stopPigpio(result))")
+        }
+        
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
