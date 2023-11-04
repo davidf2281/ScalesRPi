@@ -26,11 +26,16 @@ struct MainThing {
     let coordinator: ScalesCore.Coordinator<RPiSensor>
     init() {
         print("ScalesRPi: Starting")
-        let config: LinuxSPI.spi_config_t = .init(mode: 0, bits_per_word: 8, speed: 6000000, delay: 0)
-                
-        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
-        LinuxSPI.spi_close(spifd)
-        print("Opened and closed SPI. Possibly.")
+//        let config: LinuxSPI.spi_config_t = .init(mode: 0, bits_per_word: 8, speed: 6000000, delay: 0)
+//                
+//        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
+//        LinuxSPI.spi_close(spifd)
+//        print("Opened and closed SPI. Possibly.")
+        
+        print("pigpio start result: \(LinuxSPI.startPigpio())")
+        
+        print("pigpio stop result: \(LinuxSPI.stopPigpio())")
+        
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
     }

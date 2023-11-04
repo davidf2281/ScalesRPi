@@ -10,7 +10,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),
-        .package(path: "./LinuxSPI")
+        .package(path: "../LinuxSPI")
     ],
     targets: [
         .executableTarget(
