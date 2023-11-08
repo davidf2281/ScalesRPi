@@ -10,14 +10,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),
-        .package(url: "https://github.com/davidf2281/LinuxSPI.git", branch: "main"),
+        .package(url: "https://github.com/uraimo/SwiftyGPIO.git", from: "1.0.0")
     ],
     targets: [
         .executableTarget(
             name: "ScalesRPi",
             dependencies: [
                 .product(name: "ScalesCore", package: "ScalesCore"),
-                .product(name: "LinuxSPI", package: "LinuxSPI")
+                .product(name: "SwiftyGPIO", package: "SwiftyGPIO")
             ])
     ]
 )

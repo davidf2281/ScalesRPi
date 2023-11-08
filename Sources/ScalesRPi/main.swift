@@ -7,7 +7,7 @@
 
 import Foundation
 import ScalesCore
-import LinuxSPI
+import SwiftyGPIO
 
 // Setup shutdown handlers to handle SIGINT and SIGTERM
 // https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime
@@ -31,16 +31,23 @@ struct MainThing {
 //        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
 //        LinuxSPI.spi_close(spifd)
 //        print("Opened and closed SPI. Possibly.")
-        let pi = LinuxSPI.startPigpio()
-        print("pigpio start result: \(pi)")
+//        print("pigpio start result: \(pi)")
         
+//        let spi = SwiftyGPIO.hardwareSPIs(for: .RaspberryPiZero2)![0]
         
+        let zero2W: SupportedBoard = .RaspberryPiZero2
         
-        if pi >= 0 {
-            print("Stopping pigpio")
-            LinuxSPI.stopPigpio(pi: pi)
+        let gpios = SwiftyGPIO.GPIOs(for: zero2W)
+        let redLEDPin = gpios[.P11]
+        let greenLEDPin = gpios[.P13]
+        let blueLEDPin = gpios[.P15]
+
+        let pins = [redLEDPin, greenLEDPin, blueLEDPin]
+        
+        for pin in pins {
+            pin?.direction = .OUT
+            pin?.value = 0
         }
-        
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
