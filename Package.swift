@@ -10,7 +10,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),
-        .package(url: "https://github.com/uraimo/SwiftyGPIO.git", from: "1.0.0")
+        .package(url: "https://github.com/uraimo/SwiftyGPIO.git", exact: "1.1.14")
     ],
     targets: [
         .executableTarget(
