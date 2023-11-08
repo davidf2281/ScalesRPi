@@ -1,7 +1,6 @@
 
 import Foundation
 import ScalesCore
-import LinuxSPI
 
 struct RPiDisplay: ScalesCore.Display {
     var width: Int { 320 }
