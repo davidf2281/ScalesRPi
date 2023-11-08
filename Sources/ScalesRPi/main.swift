@@ -22,7 +22,7 @@ RunLoop.main.run()
 
 struct MainThing {
     let sensor = RPiSensor()
-    let display = RPiDisplay()
+    let display: RPiDisplay
     let coordinator: ScalesCore.Coordinator<RPiSensor>
     init() {
         print("ScalesRPi: Starting")
@@ -38,16 +38,26 @@ struct MainThing {
         let zero2W: SupportedBoard = .RaspberryPiZero2
         
         let gpios = SwiftyGPIO.GPIOs(for: zero2W)
-        let redLEDPin = gpios[.P11]
-        let greenLEDPin = gpios[.P13]
-        let blueLEDPin = gpios[.P15]
+        let redLEDPin = gpios[.P17]
+        let greenLEDPin = gpios[.P27]
+        let blueLEDPin = gpios[.P22]
 
         let pins = [redLEDPin, greenLEDPin, blueLEDPin]
         
         for pin in pins {
             pin?.direction = .OUT
-            pin?.value = 0
+            pin?.value = 1
         }
+        
+        let lcdBacklightPin = gpios[.P13]
+        lcdBacklightPin?.direction = .OUT
+        lcdBacklightPin?.value = 0
+        
+        let dcPin = gpios[.P9]! // Data / command pin -- LOW for command, HIGH for data
+        
+        let spi = SwiftyGPIO.hardwareSPIs(for: zero2W)![0]
+        
+        self.display = RPiDisplay(spi: spi, dc: dcPin)
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
