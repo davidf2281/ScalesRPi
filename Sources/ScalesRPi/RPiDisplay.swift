@@ -20,10 +20,10 @@ struct RPiDisplay: ScalesCore.Display {
         
         dc.value = 1
         
-        print("Sending frame over SPI...")
+        print("Sending frame over SPI (\(uint8Pixels.count) values)...")
         
-        for byte in uint8Pixels {
-            spi.sendData([byte])
+        for _ in uint8Pixels {
+            spi.sendData([0xFF])
         }
         
         print("...done.")
