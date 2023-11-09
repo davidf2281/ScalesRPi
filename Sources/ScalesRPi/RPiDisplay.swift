@@ -9,6 +9,7 @@ struct RPiDisplay: ScalesCore.Display {
     
     let spi: SPIInterface
     let dc: GPIO
+    let cs: GPIO
     
     func showFrame(_ frameBuffer: FrameBuffer) {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
@@ -19,7 +20,7 @@ struct RPiDisplay: ScalesCore.Display {
         }.flatMap{ $0 }
         
         dc.value = 1
-        
+        cs.value = 0
         print("Sending frame over SPI (\(uint8Pixels.count) values)...")
         
         for _ in uint8Pixels {
