@@ -49,12 +49,9 @@ struct MainThing {
         let dcPin = gpios[.P9]! // Data / command pin -- LOW for command, HIGH for data
         dcPin.direction = .OUT
         
-        let csPin = gpios[.P7]!
-        csPin.direction = .OUT
+        let spi = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
         
-        let spi = SwiftyGPIO.hardwareSPIs(for: zero2W)![0]
-        
-        self.display = RPiDisplay(spi: spi, dc: dcPin, cs: csPin)
+        self.display = RPiDisplay(spi: spi, dc: dcPin)
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
         sensor.start()
