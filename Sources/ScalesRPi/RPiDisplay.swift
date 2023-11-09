@@ -18,7 +18,11 @@ struct RPiDisplay: ScalesCore.Display {
             return [lsb, msb]
         }.flatMap{ $0 }
         
-        spi.sendData(uint8Pixels)
+        dc.value = 1
+        
+        for byte in uint8Pixels {
+            spi.sendData([byte])
+        }
     }
     
     private func pixelsPacked565(pixels24: [Color24]) -> [UInt16] {
