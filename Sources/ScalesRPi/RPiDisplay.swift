@@ -14,15 +14,19 @@ struct RPiDisplay: ScalesCore.Display {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
         let uint8Pixels = packedPixels.map {
             let lsb: UInt8 = UInt8($0 & 0b11111111)
-            let msb: UInt8 = UInt8($0 << 8)
+            let msb: UInt8 = UInt8($0 >> 8)
             return [lsb, msb]
         }.flatMap{ $0 }
         
         dc.value = 1
         
+        print("Sending frame over SPI...")
+        
         for byte in uint8Pixels {
             spi.sendData([byte])
         }
+        
+        print("...done.")
     }
     
     private func pixelsPacked565(pixels24: [Color24]) -> [UInt16] {
