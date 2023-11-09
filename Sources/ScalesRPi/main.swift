@@ -51,7 +51,7 @@ struct MainThing {
         
         let lcdBacklightPin = gpios[.P13]
         lcdBacklightPin?.direction = .OUT
-        lcdBacklightPin?.value = 0
+        lcdBacklightPin?.value = 1
         
         let dcPin = gpios[.P9]! // Data / command pin -- LOW for command, HIGH for data
         
