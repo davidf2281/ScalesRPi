@@ -13,10 +13,10 @@ import SwiftyGPIO
 // https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime
 let signalQueue = DispatchQueue(label: "shutdown")
 
-makeSignalSource(SIGTERM)
-makeSignalSource(SIGINT)
-
 let thing = MainThing()
+
+makeSignalSource(SIGTERM, backlightPin: thing.lcdBacklightPin)
+makeSignalSource(SIGINT, backlightPin: thing.lcdBacklightPin)
 
 RunLoop.main.run()
 
@@ -24,16 +24,9 @@ struct MainThing {
     let sensor = RPiSensor()
     let display: RPiDisplay
     let coordinator: ScalesCore.Coordinator<RPiSensor>
+    let lcdBacklightPin: GPIO?
     init() {
         print("ScalesRPi: Starting")
-//        let config: LinuxSPI.spi_config_t = .init(mode: 0, bits_per_word: 8, speed: 6000000, delay: 0)
-//                
-//        let spifd = LinuxSPI.spi_open("/dev/spidev2.0", config)
-//        LinuxSPI.spi_close(spifd)
-//        print("Opened and closed SPI. Possibly.")
-//        print("pigpio start result: \(pi)")
-        
-//        let spi = SwiftyGPIO.hardwareSPIs(for: .RaspberryPiZero2)![0]
         
         let zero2W: SupportedBoard = .RaspberryPiZero2
         
@@ -49,7 +42,7 @@ struct MainThing {
             pin?.value = 1
         }
         
-        let lcdBacklightPin = gpios[.P13]
+        self.lcdBacklightPin = gpios[.P13]
         lcdBacklightPin?.direction = .OUT
         lcdBacklightPin?.value = 1
         
@@ -64,11 +57,12 @@ struct MainThing {
     }
 }
 
-func makeSignalSource(_ code: Int32) {
+func makeSignalSource(_ code: Int32, backlightPin: GPIO?) {
     let source = DispatchSource.makeSignalSource(signal: code, queue: signalQueue)
     source.setEventHandler {
         source.cancel()
         print()
+        backlightPin?.value = 0
         print("Goodbye")
         exit(0)
     }
