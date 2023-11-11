@@ -139,7 +139,7 @@ extension ST7789 {
         }
         
         struct Parameter: ScalesRPi.Parameter {
-            static var bpp16: Self = .init(rawValue: 0x55)
+            static var bpp16: Self = .init(rawValue: 0x05)
             let rawValue: UInt8
         }
     }
