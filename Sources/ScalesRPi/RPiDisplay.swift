@@ -4,29 +4,22 @@ import ScalesCore
 import SwiftyGPIO
 
 struct RPiDisplay: ScalesCore.Display {
-    var width: Int { 320 }
-    var height: Int { 240 }
+    let width: Int = 320
+    let height: Int = 240
     
-    let spi: SPIInterface
-    let dc: GPIO
+    private let spi: SPIInterface
+    private let dc: GPIO
+    private let st7789: ST7789
+    
+    init(spi: SPIInterface, dc: GPIO) {
+        self.spi = spi
+        self.dc = dc
+        self.st7789 = ST7789(speed: 1000000, bpp: .bpp16, spi: spi, dc: dc, width: width, height: height)
+    }
     
     func showFrame(_ frameBuffer: FrameBuffer) {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
-        
-        let uint8Pixels = packedPixels.map {
-            let lsb: UInt8 = UInt8($0 & 0b11111111)
-            let msb: UInt8 = UInt8($0 >> 8)
-            return [lsb, msb]
-        }.flatMap{ $0 }
-        
-        dc.value = 1
-        print("Sending frame over SPI (\(uint8Pixels.count) values)...")
-        
-        for _ in uint8Pixels {
-            spi.sendData([0xFF])
-        }
-        
-        print("...done.")
+        self.st7789.displayBuffer(packedPixels)
     }
     
     private func pixelsPacked565(pixels24: [Color24]) -> [UInt16] {

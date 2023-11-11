@@ -10,18 +10,50 @@ struct ST7789 {
     }
     
     typealias Hz = UInt
+    
     let speed: Hz
     let bpp: BitsPerPixel
     let spi: SPIInterface
     let dc: GPIO
-
-    private var initializeCommands: [any ST7789Command] = [
+    let width: Int
+    let height: Int
+    
+    public init(speed: Hz, bpp: BitsPerPixel, spi: SPIInterface, dc: GPIO, width: Int, height: Int) {
+        self.speed = speed
+        self.bpp = bpp
+        self.spi = spi
+        self.dc = dc
+        self.width = width
+        self.height = height
+    }
+    
+    private var initializerCommands: [any ST7789Command] = [
         SWRESET(),
-        COLMOD.bpp16
+        COLMOD.bpp16,
+        VCOMS.v1475,
+        SLPOUT(),
+        DISPON()
     ]
     
     func initializeDisplay() {
-        for command in initializeCommands {
+        self.sendCommands(self.initializerCommands)
+    }
+    
+    func displayBuffer(_ buffer: [UInt16]) {
+        
+        // Set window to full display
+        self.sendCommand(CASET.full)
+        self.sendCommand(RASET.full)
+        
+        // Send frame-write command
+        self.sendCommand(RAMWR())
+        
+        // Send the frame
+        self.sendData(buffer.toUInt8)
+    }
+    
+    private func sendCommands(_ commands: [any ST7789Command]) {
+        for command in commands {
             self.sendCommand(command)
         }
     }
@@ -31,12 +63,12 @@ struct ST7789 {
         dc.level = .low
         spi.send(safe: [command.commandByte.rawValue], speed: speed)
         
-        if let parameterBytes = command.parameters?.asBytes {
-            self.sendData(parameterBytes)
+        if let command = command as? (any ST7789ParameterizedCommand) {
+            self.sendData(command.parameters.asBytes)
         }
         
         if let delay = command.postCommandDelay {
-            
+            Thread.sleep(forTimeInterval: delay)
         }
     }
     
@@ -47,38 +79,41 @@ struct ST7789 {
 }
 
 protocol ST7789Command {
-    associatedtype T: ScalesRPi.Parameter
     var commandByte: ST7789.CommandByte { get }
-    var parameters: [T]? { get }
     var postCommandDelay: TimeInterval? { get }
 }
 
 extension ST7789Command {
-    var parameters: [T]? { nil }
-    var postCommandDelay: TimeInterval? { 0 }
+    var postCommandDelay: TimeInterval? { nil }
+}
+
+protocol ST7789ParameterizedCommand: ST7789Command {
+    associatedtype T: ScalesRPi.Parameter
+    var parameters: [T] { get }
 }
 
 extension ST7789 {
     
     struct SWRESET: ST7789Command {
-        typealias T = None
         let commandByte: CommandByte = .swreset
         let postCommandDelay: TimeInterval? = 0.150
     }
     
-    struct MADCTL: ST7789Command {
-            
-        static var `default`: Self { .init([]) }
+    struct MADCTL: ST7789ParameterizedCommand {
         
-        init(_ parameters: [MADCTL.Parameter]?) {
+        static var `default`: Self { .init([.default]) }
+        
+        let commandByte: CommandByte = .madctl
+        let parameters: [MADCTL.Parameter]
+        
+        init(_ parameters: [MADCTL.Parameter]) {
             self.parameters = parameters
         }
-                
-        let commandByte: CommandByte = .madctl
-
-        let parameters: [MADCTL.Parameter]?
         
         struct Parameter: ScalesRPi.Parameter {
+            
+            static var `default`: Self = .init(rawValue: 0)
+            
             let rawValue: UInt8
             
             static let my =  Parameter(rawValue: 1 << 7) // Page Address Order
@@ -90,20 +125,103 @@ extension ST7789 {
         }
     }
     
-    struct COLMOD: ST7789Command {
-        static var bpp16: Self { .init([COLMOD.Parameter(rawValue: 0x55)]) }
+    struct COLMOD: ST7789ParameterizedCommand {
         
-        init(_ parameters: [COLMOD.Parameter]?) {
+        static var bpp16: Self { .init([.bpp16]) }
+        
+        let commandByte: CommandByte = .colmod
+        let parameters: [COLMOD.Parameter]
+        
+        init(_ parameters: [COLMOD.Parameter]) {
             self.parameters = parameters
         }
-                
-        let commandByte: CommandByte = .colmod
-
-        let parameters: [COLMOD.Parameter]?
         
         struct Parameter: ScalesRPi.Parameter {
+            static var bpp16: Self = .init(rawValue: 0x55)
             let rawValue: UInt8
         }
+    }
+    
+    struct VCOMS: ST7789ParameterizedCommand {
+        
+        static var v1475: Self { .init([.v1475]) }
+        
+        let commandByte: CommandByte = .vcoms
+        let parameters: [VCOMS.Parameter]
+        
+        init(_ parameters: [VCOMS.Parameter]) {
+            self.parameters = parameters
+        }
+        
+        struct Parameter: ScalesRPi.Parameter {
+            static var v1475: Self = .init(rawValue: 0x37)
+            let rawValue: UInt8
+        }
+    }
+    
+    struct SLPOUT: ST7789Command {
+        let commandByte: CommandByte = .slpout
+        let postCommandDelay: TimeInterval? = 0.005
+    }
+    
+    struct DISPON: ST7789Command {
+        let commandByte: CommandByte = .dispon
+        // TODO: The datasheet doesn't mention the need for a delay after this command. Try without.
+        let postCommandDelay: TimeInterval? = 0.1
+    }
+    
+    struct CASET: ST7789ParameterizedCommand {
+        static var full: Self { .init(Parameter.full) }
+        
+        let commandByte: CommandByte = .caset
+        let parameters: [CASET.Parameter]
+        
+        init(_ parameters: [CASET.Parameter]) {
+            self.parameters = parameters
+        }
+        
+        struct Parameter: ScalesRPi.Parameter {
+            
+            let rawValue: UInt8
+            
+            // TODO: Adapt for variable screen resolution
+            static var full: [Self] = {
+                let fullRange = 239
+                let msb = UInt8(fullRange >> 8)
+                let lsb = UInt8(fullRange & 0xFF)
+                return [.init(rawValue: 0x0), .init(rawValue: 0x0),
+                        .init(rawValue: msb), .init(rawValue: lsb)]
+            }()
+        }
+    }
+    
+    struct RASET: ST7789ParameterizedCommand {
+        static var full: Self { .init(Parameter.full) }
+        
+        let commandByte: CommandByte = .raset
+        let parameters: [RASET.Parameter]
+        
+        init(_ parameters: [RASET.Parameter]) {
+            self.parameters = parameters
+        }
+        
+        struct Parameter: ScalesRPi.Parameter {
+            
+            let rawValue: UInt8
+            
+            // TODO: Adapt for variable screen resolution
+            static var full: [Self] = {
+                let fullRange = 319
+                let msb = UInt8(fullRange >> 8)
+                let lsb = UInt8(fullRange & 0xFF)
+                return [.init(rawValue: 0x0), .init(rawValue: 0x0),
+                        .init(rawValue: msb), .init(rawValue: lsb)]
+            }()
+        }
+    }
+    
+    struct RAMWR: ST7789Command {
+        let commandByte: CommandByte = .ramwr
     }
 }
 
@@ -129,83 +247,83 @@ extension Array<ScalesRPi.Parameter> {
  
  Initializer:
  SWRESET(0x01)
-    (150ms delay)
+ (150ms delay)
  
  MADCTL(0x36)
-    0x70
+ 0x70
  
  FRMCTR2(0xB2)
-    0x0C
-    0x0C
-    0x00
-    0x33
-    0x33
+ 0x0C
+ 0x0C
+ 0x00
+ 0x33
+ 0x33
  
  COLMOD(0x3A)
-    0x05
+ 0x05
  
  GCTRL(0xB7)
-    0x14
+ 0x14
  
  VCOMS(0xBB)
-    0x37
+ 0x37
  
  LCMCTRL(0xC0)
-    0x2C
+ 0x2C
  
  VDVVRHEN(0xC2)
-    0x01
+ 0x01
  
  VRHS(0xC3)
-    0x12
+ 0x12
  
  VDVS(0xC4)
-    0x20
+ 0x20
  
  RDDIM(0xD0) // Unnamed in Python implementation
-    0xA4
-    0xA1
+ 0xA4
+ 0xA1
  
  FRCTRL2(0xC6)
-    0x0F
+ 0x0F
  
  GMCTRP1(0xE0) // Gamma, apparently
-    0xD0
-    0x04
-    0x0D
-    0x11
-    0x13
-    0x2B
-    0x3F
-    0x54
-    0x4C
-    0x18
-    0x0D
-    0x0B
-    0x1F
-    0x23
+ 0xD0
+ 0x04
+ 0x0D
+ 0x11
+ 0x13
+ 0x2B
+ 0x3F
+ 0x54
+ 0x4C
+ 0x18
+ 0x0D
+ 0x0B
+ 0x1F
+ 0x23
  
  GMCTRN1( 0xE1) // Gamma again, apparently
-    0xD0
-    0x04
-    0x0C
-    0x11
-    0x13
-    0x2C
-    0x3F
-    0x44
-    0x51
-    0x2F
-    0x1F
-    0x1F
-    0x20
-    0x23
+ 0xD0
+ 0x04
+ 0x0C
+ 0x11
+ 0x13
+ 0x2C
+ 0x3F
+ 0x44
+ 0x51
+ 0x2F
+ 0x1F
+ 0x1F
+ 0x20
+ 0x23
  
  SLPOUT(0x11)
-    (no parameters)
+ (no parameters)
  
  DISPON(0x29)
-    (100ms delay)
+ (100ms delay)
  
  
  
