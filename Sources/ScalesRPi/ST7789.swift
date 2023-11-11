@@ -80,20 +80,6 @@ struct ST7789 {
     }
 }
 
-protocol ST7789Command {
-    var commandByte: ST7789.CommandByte { get }
-    var postCommandDelay: TimeInterval? { get }
-}
-
-extension ST7789Command {
-    var postCommandDelay: TimeInterval? { nil }
-}
-
-protocol ST7789ParameterizedCommand: ST7789Command {
-    associatedtype T: ScalesRPi.Parameter
-    var parameters: [T] { get }
-}
-
 extension ST7789 {
     
     struct SWRESET: ST7789Command {
@@ -227,15 +213,22 @@ extension ST7789 {
     }
 }
 
-protocol Parameter: OptionSet {
-    var rawValue: UInt8 { get }
+protocol ST7789Command {
+    var commandByte: ST7789.CommandByte { get }
+    var postCommandDelay: TimeInterval? { get }
 }
 
-struct None: Parameter {
-    static var none = None()
-    init() { self.init(rawValue: 0) }
-    init(rawValue: UInt8) {}
-    var rawValue: UInt8 { 0 }
+extension ST7789Command {
+    var postCommandDelay: TimeInterval? { nil }
+}
+
+protocol ST7789ParameterizedCommand: ST7789Command {
+    associatedtype T: ScalesRPi.Parameter
+    var parameters: [T] { get }
+}
+
+protocol Parameter: OptionSet {
+    var rawValue: UInt8 { get }
 }
 
 extension Array<ScalesRPi.Parameter> {
