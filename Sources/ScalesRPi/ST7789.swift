@@ -30,7 +30,7 @@ struct ST7789 {
     private var initializerCommands: [any ST7789Command] = [
         SWRESET(),
         COLMOD.bpp16,
-        VCOMS.v1475,
+//        VCOMS.v1475,
         SLPOUT(),
         DISPON()
     ]
