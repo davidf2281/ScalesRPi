@@ -12,6 +12,7 @@ struct RPiDisplay: ScalesCore.Display {
     
     func showFrame(_ frameBuffer: FrameBuffer) {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
+        
         let uint8Pixels = packedPixels.map {
             let lsb: UInt8 = UInt8($0 & 0b11111111)
             let msb: UInt8 = UInt8($0 >> 8)
