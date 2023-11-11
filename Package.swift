@@ -6,7 +6,7 @@ let package = Package(
     name: "ScalesRPi",
     platforms: [.macOS(.v12)],
     products: [
-        .executable(name: "scales", targets: ["ScalesRPi"]),
+        .executable(name: "ScalesRPi", targets: ["ScalesRPi"]),
     ],
     dependencies: [
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),

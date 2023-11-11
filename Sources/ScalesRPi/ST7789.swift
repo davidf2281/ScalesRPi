@@ -4,45 +4,81 @@ import SwiftyGPIO
 
 struct ST7789 {
     
+    enum BitsPerPixel: Int {
+        case bpp16 = 0x05
+        case bpp18 = 0x06
+    }
+    
     typealias Hz = UInt
     let speed: Hz
+    let bpp: BitsPerPixel
     let spi: SPIInterface
     let dc: GPIO
 
-    
-    private func send(_ data: [UInt8]) {
-        dc.level = .high
-        
-    }
-    
-    private func send(_ command: ST7789Command) {
-        dc.level = .low
-        let bytes: [UInt8] = [command.operator.rawValue] + command.parameterBytes
-        spi.send(safe: bytes, speed: speed)
-    }
+    private var initializeCommands: [any ST7789Command] = [
+        SWRESET(),
+        COLMOD.bpp16
+    ]
     
     func initializeDisplay() {
+        for command in initializeCommands {
+            self.sendCommand(command)
+        }
+    }
+    
+    private func sendCommand(_ command: any ST7789Command) {
         
+        dc.level = .low
+        spi.send(safe: [command.commandByte.rawValue], speed: speed)
+        
+        if let parameterBytes = command.parameters?.asBytes {
+            self.sendData(parameterBytes)
+        }
+        
+        if let delay = command.postCommandDelay {
+            
+        }
+    }
+    
+    private func sendData(_ bytes: [UInt8]) {
+        dc.level = .high
+        spi.send(safe: bytes, speed: speed)
     }
 }
 
-
 protocol ST7789Command {
-    var `operator`: ST7789.CommandOperator { get }
-    var parameterBytes: [UInt8] { get }
+    associatedtype T: ScalesRPi.Parameter
+    var commandByte: ST7789.CommandByte { get }
+    var parameters: [T]? { get }
+    var postCommandDelay: TimeInterval? { get }
+}
+
+extension ST7789Command {
+    var parameters: [T]? { nil }
+    var postCommandDelay: TimeInterval? { 0 }
 }
 
 extension ST7789 {
+    
+    struct SWRESET: ST7789Command {
+        typealias T = None
+        let commandByte: CommandByte = .swreset
+        let postCommandDelay: TimeInterval? = 0.150
+    }
+    
     struct MADCTL: ST7789Command {
-        let `operator`: CommandOperator = .madctl
+            
+        static var `default`: Self { .init([]) }
         
-        var parameterBytes: [UInt8] {
-            [parameter.rawValue]
+        init(_ parameters: [MADCTL.Parameter]?) {
+            self.parameters = parameters
         }
+                
+        let commandByte: CommandByte = .madctl
 
-        let parameter: Parameter
+        let parameters: [MADCTL.Parameter]?
         
-        struct Parameter: OptionSet {
+        struct Parameter: ScalesRPi.Parameter {
             let rawValue: UInt8
             
             static let my =  Parameter(rawValue: 1 << 7) // Page Address Order
@@ -52,10 +88,39 @@ extension ST7789 {
             static let rgb = Parameter(rawValue: 1 << 3) // RGB/BGR Order
             static let mh =  Parameter(rawValue: 1 << 2) // Display Data Latch Order
         }
+    }
+    
+    struct COLMOD: ST7789Command {
+        static var bpp16: Self { .init([COLMOD.Parameter(rawValue: 0x55)]) }
         
-        init(_ parameter: Parameter) {
-            self.parameter = parameter
+        init(_ parameters: [COLMOD.Parameter]?) {
+            self.parameters = parameters
         }
+                
+        let commandByte: CommandByte = .colmod
+
+        let parameters: [COLMOD.Parameter]?
+        
+        struct Parameter: ScalesRPi.Parameter {
+            let rawValue: UInt8
+        }
+    }
+}
+
+protocol Parameter: OptionSet {
+    var rawValue: UInt8 { get }
+}
+
+struct None: Parameter {
+    static var none = None()
+    init() { self.init(rawValue: 0) }
+    init(rawValue: UInt8) {}
+    var rawValue: UInt8 { 0 }
+}
+
+extension Array<ScalesRPi.Parameter> {
+    var asBytes: [UInt8] {
+        self.map { $0.rawValue }
     }
 }
 
@@ -151,12 +216,7 @@ extension ST7789 {
  */
 extension ST7789 {
     
-    enum CommandOperator: UInt8 {
-        
-        enum BitsPerPixel: Int {
-            case bpp16 = 0x05
-            case bpp18 = 0x06
-        }
+    enum CommandByte: UInt8 {
         
         case nop = 0x00
         case swreset = 0x01
