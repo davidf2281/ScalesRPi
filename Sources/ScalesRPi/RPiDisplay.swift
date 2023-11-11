@@ -15,6 +15,7 @@ struct RPiDisplay: ScalesCore.Display {
         self.spi = spi
         self.dc = dc
         self.st7789 = ST7789(speed: 1000000, bpp: .bpp16, spi: spi, dc: dc, width: width, height: height)
+        self.st7789.initializeDisplay()
     }
     
     func showFrame(_ frameBuffer: FrameBuffer) {

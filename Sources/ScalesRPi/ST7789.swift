@@ -36,7 +36,9 @@ struct ST7789 {
     ]
     
     func initializeDisplay() {
+        print("Initializing ST7789...")
         self.sendCommands(self.initializerCommands)
+        print("Done.")
     }
     
     func displayBuffer(_ buffer: [UInt16]) {
