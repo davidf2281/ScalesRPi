@@ -43,6 +43,8 @@ struct ST7789 {
     
     func displayBuffer(_ buffer: [UInt16]) {
         
+        return
+        
         // Set window to full display
         self.sendCommand(CASET.full)
         self.sendCommand(RASET.full)
