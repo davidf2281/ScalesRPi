@@ -11,6 +11,7 @@ class RPiSensor: ScalesCore.Sensor {
     private var timer: Timer?
     
     func start() {
+        print("Sensor starting")
         self.timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
             self.delegate?.didGetReading(0.0)
         }
