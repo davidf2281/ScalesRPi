@@ -2,14 +2,13 @@
 import Foundation
 
 struct COLMOD: ST7789ParameterizedCommand {
-    
-    static var bpp16: Self { .init([.bpp16]) }
-    
+        
     let commandByte: ST7789.CommandByte = .colmod
     let parameters: [COLMOD.Parameter]
     
-    init(_ parameters: [COLMOD.Parameter]) {
-        self.parameters = parameters
+    init(bpp: ST7789.BitsPerPixel) {
+        precondition(bpp == .bpp16, "Color depths other than 16bpp not currently supported")
+        self.parameters = [.init(rawValue: bpp.rawValue)]
     }
     
     struct Parameter: ScalesRPi.Parameter {

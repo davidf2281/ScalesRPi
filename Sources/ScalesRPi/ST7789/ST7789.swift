@@ -4,9 +4,9 @@ import SwiftyGPIO
 
 struct ST7789 {
     
-    enum BitsPerPixel: Int {
-        case bpp16 = 0x05
-        case bpp18 = 0x06
+    enum BitsPerPixel: UInt8 {
+        case bpp16 = 0x55
+        case bpp18 = 0x66
     }
     
     typealias Hz = UInt
@@ -27,39 +27,23 @@ struct ST7789 {
         self.height = height
     }
     
-    private var initializerCommands: [any ST7789Command] = [
-        SWRESET(),
-//        MADCTL.default,
-//        FRMCTR2.default,
-        COLMOD.bpp16,
-//        GCTRL.default,
-//        VCOMS.v1475,
-//        LCMCTRL.default,
-//        VDVVRHEN.default,
-//        VRHS.default,
-//        VDVS.default,
-//        RDDIM.default,
-//        FRCTRL2.default,
-//        GMCTRP1.default,
-//        GMCTRN1.default,
-        INVON(),
-        SLPOUT(),
-        DISPON()
-    ]
-    
     func initializeDisplay() {
-        print("Initializing ST7789...")
-        self.sendCommands(self.initializerCommands)
-        print("Done.")
+        self.sendCommands([
+            SWRESET(),
+            COLMOD(bpp: self.bpp),
+            INVON(),
+            SLPOUT(),
+            DISPON()
+        ])
     }
     
     func displayBuffer(_ buffer: [UInt16]) {
                 
         // Set window to full display
-        self.sendCommand(CASET.full)
-        self.sendCommand(RASET.full)
+        self.sendCommand(CASET(startX: 0, endX: width - 1))
+        self.sendCommand(RASET(startY: 0, endY: height - 1))
         
-        // Send frame-write command
+        // Send RAM-write command
         self.sendCommand(RAMWR())
                 
         // Send the frame
@@ -118,7 +102,7 @@ extension ST7789 {
         
         case ptlar = 0x30
         case madctl = 0x36
-        case colmod = 0x3A // Sets bits per pixel
+        case colmod = 0x3A
         
         case frmctr1 = 0xB1
         case frmctr2 = 0xB2
@@ -151,95 +135,3 @@ extension ST7789 {
         case pwctr6 = 0xFC
     }
 }
-
-
-/*
- Existing library used commands
- 
- Initializer:
- SWRESET(0x01)
- (150ms delay)
- 
- MADCTL(0x36)
- 0x70
- 
- FRMCTR2(0xB2)
- 0x0C
- 0x0C
- 0x00
- 0x33
- 0x33
- 
- COLMOD(0x3A)
- 0x05
- 
- GCTRL(0xB7)
- 0x14
- 
- VCOMS(0xBB)
- 0x37
- 
- LCMCTRL(0xC0)
- 0x2C
- 
- VDVVRHEN(0xC2)
- 0x01
- 
- VRHS(0xC3)
- 0x12
- 
- VDVS(0xC4)
- 0x20
- 
- RDDIM(0xD0) // Unnamed in Python implementation
- 0xA4
- 0xA1
- 
- FRCTRL2(0xC6)
- 0x0F
- 
- GMCTRP1(0xE0) // Gamma, apparently
- 0xD0
- 0x04
- 0x0D
- 0x11
- 0x13
- 0x2B
- 0x3F
- 0x54
- 0x4C
- 0x18
- 0x0D
- 0x0B
- 0x1F
- 0x23
- 
- GMCTRN1( 0xE1) // Gamma again, apparently
- 0xD0
- 0x04
- 0x0C
- 0x11
- 0x13
- 0x2C
- 0x3F
- 0x44
- 0x51
- 0x2F
- 0x1F
- 0x1F
- 0x20
- 0x23
- 
- SLPOUT(0x11)
- (no parameters)
- 
- DISPON(0x29)
- (100ms delay)
- 
- 
- 
- Setting write window immediately prior to buffer write:
- CASET
- RASET
- RAMWR
- */

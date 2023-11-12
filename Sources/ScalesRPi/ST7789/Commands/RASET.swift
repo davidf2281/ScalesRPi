@@ -2,13 +2,19 @@
 import Foundation
 
 struct RASET: ST7789ParameterizedCommand {
-    static var full: Self { .init(Parameter.full) }
     
     let commandByte: ST7789.CommandByte = .raset
     let parameters: [RASET.Parameter]
     
-    init(_ parameters: [RASET.Parameter]) {
-        self.parameters = parameters
+    init(startY: Int, endY: Int) {
+        self.parameters = {
+            let startMSB = UInt8(startY >> 8)
+            let startLSB = UInt8(startY & 0xFF)
+            let endMSB = UInt8(endY >> 8)
+            let endLSB = UInt8(endY & 0xFF)
+            return [.init(rawValue: startMSB), .init(rawValue: startLSB),
+                    .init(rawValue: endMSB), .init(rawValue: endLSB)]
+        }()
     }
     
     struct Parameter: ScalesRPi.Parameter {
