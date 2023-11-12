@@ -18,6 +18,7 @@ let package = Package(
             dependencies: [
                 .product(name: "ScalesCore", package: "ScalesCore"),
                 .product(name: "SwiftyGPIO", package: "SwiftyGPIO")
-            ])
+            ]),
+        .testTarget(name: "ScalesRPiTests", dependencies: ["ScalesRPi"])
     ]
 )

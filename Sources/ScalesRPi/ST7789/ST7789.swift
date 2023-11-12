@@ -93,6 +93,67 @@ struct ST7789 {
     }
 }
 
+extension ST7789 {
+    
+    enum CommandByte: UInt8 {
+        
+        case nop = 0x00
+        case swreset = 0x01
+        case rddid = 0x04
+        case rddst = 0x09
+        
+        case slpin = 0x10
+        case slpout = 0x11
+        case ptlon = 0x12
+        case noron = 0x13
+        
+        case invoff = 0x20
+        case invon = 0x21
+        case dispoff = 0x28
+        case dispon = 0x29
+        
+        case caset = 0x2A
+        case raset = 0x2B
+        case ramwr = 0x2C
+        case ramrd = 0x2E
+        
+        case ptlar = 0x30
+        case madctl = 0x36
+        case colmod = 0x3A // Sets bits per pixel
+        
+        case frmctr1 = 0xB1
+        case frmctr2 = 0xB2
+        case frmctr3 = 0xB3
+        case invctr = 0xB4
+        case disset5 = 0xB6
+        
+        case gctrl = 0xB7
+        case gtadj = 0xB8
+        case vcoms = 0xBB
+        
+        case lcmctrl = 0xC0
+        case idset = 0xC1
+        case vdvvrhen = 0xC2
+        case vrhs = 0xC3
+        case vdvs = 0xC4
+        case vmctr1 = 0xC5
+        case frctrl2 = 0xC6
+        case cabcctrl = 0xC7
+        
+        case rdddim = 0xD0
+        case rdid1 = 0xDA
+        case rdid2 = 0xDB
+        case rdid3 = 0xDC
+        case rdid4 = 0xDD
+        
+        case gmctrp1 = 0xE0
+        case gmctrn1 = 0xE1
+        
+        case pwctr6 = 0xFC
+    }
+}
+
+
 /*
  Existing library used commands
  
@@ -183,62 +244,3 @@ struct ST7789 {
  RASET
  RAMWR
  */
-extension ST7789 {
-    
-    enum CommandByte: UInt8 {
-        
-        case nop = 0x00
-        case swreset = 0x01
-        case rddid = 0x04
-        case rddst = 0x09
-        
-        case slpin = 0x10
-        case slpout = 0x11
-        case ptlon = 0x12
-        case noron = 0x13
-        
-        case invoff = 0x20
-        case invon = 0x21
-        case dispoff = 0x28
-        case dispon = 0x29
-        
-        case caset = 0x2A
-        case raset = 0x2B
-        case ramwr = 0x2C
-        case ramrd = 0x2E
-        
-        case ptlar = 0x30
-        case madctl = 0x36
-        case colmod = 0x3A // Sets bits per pixel
-        
-        case frmctr1 = 0xB1
-        case frmctr2 = 0xB2
-        case frmctr3 = 0xB3
-        case invctr = 0xB4
-        case disset5 = 0xB6
-        
-        case gctrl = 0xB7
-        case gtadj = 0xB8
-        case vcoms = 0xBB
-        
-        case lcmctrl = 0xC0
-        case idset = 0xC1
-        case vdvvrhen = 0xC2
-        case vrhs = 0xC3
-        case vdvs = 0xC4
-        case vmctr1 = 0xC5
-        case frctrl2 = 0xC6
-        case cabcctrl = 0xC7
-        
-        case rdddim = 0xD0
-        case rdid1 = 0xDA
-        case rdid2 = 0xDB
-        case rdid3 = 0xDC
-        case rdid4 = 0xDD
-        
-        case gmctrp1 = 0xE0
-        case gmctrn1 = 0xE1
-        
-        case pwctr6 = 0xFC
-    }
-}
