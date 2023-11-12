@@ -61,9 +61,7 @@ struct ST7789 {
         
         // Send frame-write command
         self.sendCommand(RAMWR())
-        
-        print("Sending frame")
-        
+                
         // Send the frame
         self.sendData(buffer.toUInt8)
     }
@@ -84,7 +82,6 @@ struct ST7789 {
         }
         
         if let delay = command.postCommandDelay {
-            print("Sleeping for \(delay) after \(command.commandByte)")
             Thread.sleep(forTimeInterval: delay)
         }
     }

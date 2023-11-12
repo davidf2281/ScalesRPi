@@ -54,7 +54,6 @@ struct MainThing {
         self.display = RPiDisplay(spi: spi1, dc: dcPin)
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, graphicsContext: GraphicsContext(display: display))
-        sensor.start()
     }
 }
 
