@@ -14,7 +14,7 @@ struct RPiDisplay: ScalesCore.Display {
     init(spi: SPIInterface, dc: GPIO) {
         self.spi = spi
         self.dc = dc
-        self.st7789 = ST7789(speed: 30000000, bpp: .bpp16, spi: spi, dc: dc, width: width, height: height)
+        self.st7789 = ST7789(speed: 60000000, bpp: .bpp16, spi: spi, dc: dc, width: width, height: height)
         self.st7789.initializeDisplay()
     }
     
