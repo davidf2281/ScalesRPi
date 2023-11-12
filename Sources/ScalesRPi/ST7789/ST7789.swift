@@ -42,7 +42,7 @@ struct ST7789 {
         FRCTRL2.default,
         GMCTRP1.default,
         GMCTRN1.default,
-        INVOFF(),
+        INVON(),
         SLPOUT(),
         DISPON()
     ]
