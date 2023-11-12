@@ -5,7 +5,7 @@ extension Array where Element == UInt8 {
     
     /// Splits the receiver into a sequence of sub-arrays of at most`maxCount` elements,
     /// if the receiver has at least maxCount elements
-    func split(_ maxCount: Int) -> [Self]{
+    func split(_ maxCount: Int) -> [Self] {
         if self.count <= maxCount {
             return [self]
         }
