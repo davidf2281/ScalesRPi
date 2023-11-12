@@ -29,9 +29,19 @@ struct ST7789 {
     
     private var initializerCommands: [any ST7789Command] = [
         SWRESET(),
+        MADCTL.default,
+        FRMCTR2.default,
         COLMOD.bpp16,
         GCTRL.default,
         VCOMS.v1475,
+        LCMCTRL.default,
+        VDVVRHEN.default,
+        VRHS.default,
+        VDVS.default,
+        RDDIM.default,
+        FRCTRL2.default,
+        GMCTRP1.default,
+        GMCTRN1.default,
         SLPOUT(),
         DISPON()
     ]
@@ -43,9 +53,7 @@ struct ST7789 {
     }
     
     func displayBuffer(_ buffer: [UInt16]) {
-        
-        return
-        
+                
         // Set window to full display
         self.sendCommand(CASET.full)
         self.sendCommand(RASET.full)
@@ -214,12 +222,13 @@ extension ST7789 {
         case lcmctrl = 0xC0
         case idset = 0xC1
         case vdvvrhen = 0xC2
-        case vrhs = 0xc3
-        case vdvs = 0xc4
+        case vrhs = 0xC3
+        case vdvs = 0xC4
         case vmctr1 = 0xC5
         case frctrl2 = 0xC6
         case cabcctrl = 0xC7
         
+        case rdddim = 0xD0
         case rdid1 = 0xDA
         case rdid2 = 0xDB
         case rdid3 = 0xDC

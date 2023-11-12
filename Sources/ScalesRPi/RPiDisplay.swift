@@ -21,9 +21,9 @@ struct RPiDisplay: ScalesCore.Display {
     func showFrame(_ frameBuffer: FrameBuffer) {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
         
-        var testBuffer: [UInt16] = .init(repeating: 0, count: 76800)
-        testBuffer[38400] = 0xFF
-        self.st7789.displayBuffer(testBuffer)
+//        var testBuffer: [UInt16] = .init(repeating: 0, count: 76800)
+//        testBuffer[38400] = 0xFF
+        self.st7789.displayBuffer(packedPixels)
     }
     
     private func pixelsPacked565(pixels24: [Color24]) -> [UInt16] {
