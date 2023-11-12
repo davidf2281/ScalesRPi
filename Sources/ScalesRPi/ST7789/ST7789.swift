@@ -82,6 +82,7 @@ struct ST7789 {
         }
         
         if let delay = command.postCommandDelay {
+            print("Sleeping for \(delay) after \(command.commandByte)")
             Thread.sleep(forTimeInterval: delay)
         }
     }
