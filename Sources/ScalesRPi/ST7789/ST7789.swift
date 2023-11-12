@@ -62,6 +62,8 @@ struct ST7789 {
         // Send frame-write command
         self.sendCommand(RAMWR())
         
+        print("Sending frame")
+        
         // Send the frame
         self.sendData(buffer.toUInt8)
     }
