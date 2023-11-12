@@ -29,7 +29,7 @@ struct ST7789 {
     
     private var initializerCommands: [any ST7789Command] = [
         SWRESET(),
-        MADCTL.default,
+//        MADCTL.default,
 //        FRMCTR2.default,
         COLMOD.bpp16,
 //        GCTRL.default,
