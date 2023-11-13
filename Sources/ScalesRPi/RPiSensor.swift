@@ -12,7 +12,7 @@ class RPiSensor: ScalesCore.Sensor {
     
     func start() {
         self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-            self.delegate?.didGetReading(0.0)
+            self.delegate?.didGetReading(3.14159)
         }
     }
 }
