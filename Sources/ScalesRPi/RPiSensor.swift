@@ -9,10 +9,13 @@ class RPiSensor: ScalesCore.Sensor {
     weak var delegate: (any SensorDelegate<T>)?
     
     private var timer: Timer?
-    
+    private var output: Float = 0
     func start() {
-        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-            self.delegate?.didGetReading(3.14159)
+        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            if let self {
+                self.delegate?.didGetReading(self.output)
+                self.output += 0.1
+            }
         }
     }
 }
