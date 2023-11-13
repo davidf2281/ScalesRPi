@@ -41,8 +41,8 @@ struct ST7789 {
     func displayBuffer(_ buffer: [UInt16]) {
                 
         // Set window to full display
-        self.sendCommand(CASET(startX: 0, endX: width - 1))
-        self.sendCommand(RASET(startY: 0, endY: height - 1))
+        self.sendCommand(CASET(startX: 0, endX: height - 1))
+        self.sendCommand(RASET(startY: 0, endY: width - 1))
         
         // Send RAM-write command
         self.sendCommand(RAMWR())

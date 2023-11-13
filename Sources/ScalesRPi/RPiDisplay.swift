@@ -4,8 +4,8 @@ import ScalesCore
 import SwiftyGPIO
 
 struct RPiDisplay: ScalesCore.Display {
-    let width: Int = 240
-    let height: Int = 320
+    let width: Int = 320
+    let height: Int = 240
     
     private let spi: SPIInterface
     private let dc: GPIO
