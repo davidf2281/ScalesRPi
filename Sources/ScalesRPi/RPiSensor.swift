@@ -23,6 +23,6 @@ class RPiSensor: ScalesCore.Sensor {
 extension Float: SensorOutput {
     public typealias T = Self
     public var stringValue: String {
-        String(self)
+        String(format: "%.1f", self)
     }
 }
