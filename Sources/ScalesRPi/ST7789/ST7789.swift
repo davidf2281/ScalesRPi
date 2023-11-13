@@ -31,7 +31,7 @@ struct ST7789 {
         self.sendCommands([
             SWRESET(),
             COLMOD(bpp: self.bpp),
-            MADCTL([.mv, .mx, .rgb]),
+            MADCTL([.my]),
             INVON(),
             SLPOUT(),
             DISPON()
