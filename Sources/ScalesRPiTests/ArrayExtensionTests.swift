@@ -1,11 +1,4 @@
 
-//
-//  Color24Tests.swift
-//
-//
-//  Created by David Fearon on 06/11/2023.
-//
-
 import XCTest
 @testable import ScalesRPi
 
