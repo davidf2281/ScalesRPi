@@ -3,9 +3,7 @@ import Foundation
 import SwiftyGPIO
 
 extension SPIInterface {
-    
-    typealias Hz = UInt
-    
+        
     func send(safe bytes: [UInt16], speed: Hz) {
         send(safe: bytes.toUInt8, speed: speed)
     }

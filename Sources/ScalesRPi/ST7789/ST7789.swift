@@ -2,12 +2,7 @@
 import Foundation
 import SwiftyGPIO
 
-struct ST7789 {
-    
-    enum BitsPerPixel: UInt8 {
-        case bpp16 = 0x55
-        case bpp18 = 0x66
-    }
+struct ST7789: DisplayChipset {
     
     typealias Hz = UInt
     
@@ -31,7 +26,7 @@ struct ST7789 {
         self.sendCommands([
             SWRESET(),
             COLMOD(bpp: self.bpp),
-            MADCTL([.my]),
+            //MADCTL([.my]),
             INVON(),
             SLPOUT(),
             DISPON()
