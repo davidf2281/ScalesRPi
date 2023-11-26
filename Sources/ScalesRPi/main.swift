@@ -20,9 +20,9 @@ RunLoop.main.run()
 
 struct Main {
     
-    let sensor = RPiSensor()
+    let sensor: MCP9600Sensor
     let display: ST7789Display
-    let coordinator: ScalesCore.Coordinator<RPiSensor>
+    let coordinator: ScalesCore.Coordinator<MCP9600Sensor>
     let lcdBacklightPin: GPIO?
     
     init() {
@@ -49,6 +49,9 @@ struct Main {
         dcPin.direction = .OUT
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
         self.display = ST7789Display(spi: spi1, dc: dcPin)
+        
+        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
+        self.sensor = MCP9600Sensor(i2c: i2c)
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, display: display)
     }
