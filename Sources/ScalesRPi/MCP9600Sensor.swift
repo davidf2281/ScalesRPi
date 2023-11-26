@@ -21,15 +21,8 @@ class MCP9600Sensor: ScalesCore.Sensor {
     init(i2c: I2CInterface) {
         self.i2c = i2c
         
+        // Write all zeroes to the config register to make sure device is powered up
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
-        
-        i2c.writeByte(deviceAddress, value: revisionPointer)
-        let deviceIDByte = i2c.readWord(deviceAddress, command: revisionPointer)
-//        print("Byte count: \(deviceIDBytes.count)")
-       // let deviceRevisionByte = i2c.readByte(deviceAddress)
-       print("Value: \(deviceIDByte)")
-//       print("Device revision byte: \(deviceIDBytes[1])")
-
     }
     
     func start() {
@@ -41,29 +34,15 @@ class MCP9600Sensor: ScalesCore.Sensor {
     }
     
     private func getReading() -> Float {
-        // Writing register 0 of the device with address 0x68
         i2c.writeByte(deviceAddress, value: tCPointer)
-        let tempWord = i2c.readWord(deviceAddress, command: tCPointer)
+        let temperatureWord = i2c.readWord(deviceAddress, command: tCPointer)
 
-        print("Temp word: \(tempWord)")
-//        let upperByte = i2c.readByte(deviceAddress, command: tCPointer)
-//        let lowerByte = i2c.readByte(deviceAddress, command: tCPointer)
-//        print("Upper byte: \(upperByte), lower byte: \(lowerByte)")
-//        let signedTempValue: Int16 = Int16((upperByte << 8) + lowerByte)
-//        
-//        let temperature: Float = Float(signedTempValue) * 0.0625
+        let byteSwappedReading: UInt16 = UInt16(temperatureWord).byteSwapped
+        let signedValue = Int16(bitPattern: byteSwappedReading)
+        let finalTemperature = Float(signedValue) * 0.0625
         
-        return 0
+        return finalTemperature
     }
-    
-    /*
-     //Convert the temperature data
-     if ((UpperByte & 0x80) == 0x80) { // Temperature < 0°C
-        Temperature = (UpperByte x 16 + LowerByte / 16) - 4096;
-     }  else {//Temperature >= 0°C
-        Temperature = (UpperByte x 16 + LowerByte / 16);
-     }
-     */
 }
 
 extension Float: SensorOutput {
