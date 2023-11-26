@@ -25,6 +25,7 @@ class MCP9600Sensor: ScalesCore.Sensor {
         
         i2c.writeByte(deviceAddress, value: revisionPointer)
         let deviceIDBytes = i2c.readI2CData(deviceAddress, command: revisionPointer)
+        print("Byte count: \(deviceIDBytes.count)")
        // let deviceRevisionByte = i2c.readByte(deviceAddress)
        // print("Device ID byte: \(deviceIDByte)")
        // print("Device revision byte: \(deviceRevisionByte)")
@@ -40,6 +41,7 @@ class MCP9600Sensor: ScalesCore.Sensor {
     }
     
     private func getReading() -> Float {
+        return 0
         // Writing register 0 of the device with address 0x68
         i2c.writeByte(deviceAddress, value: tCPointer)
         let upperByte = i2c.readByte(deviceAddress, command: tCPointer)
