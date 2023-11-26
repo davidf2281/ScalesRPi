@@ -39,8 +39,8 @@ class MCP9600Sensor: ScalesCore.Sensor {
     private func getReading() -> Float {
         // Writing register 0 of the device with address 0x68
         i2c.writeByte(deviceAddress, value: tCPointer)
-        let upperByte = i2c.readByte(deviceAddress)
-        let lowerByte = i2c.readByte(deviceAddress)
+        let upperByte = i2c.readByte(deviceAddress, command: tCPointer)
+        let lowerByte = i2c.readByte(deviceAddress, command: tCPointer)
         print("Upper byte: \(upperByte), lower byte: \(lowerByte)")
         let signedTempValue: Int16 = Int16((upperByte << 8) + lowerByte)
         
