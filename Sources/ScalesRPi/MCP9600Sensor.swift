@@ -35,10 +35,13 @@ class MCP9600Sensor: ScalesCore.Sensor {
     
     private func getReading() -> Float {
         i2c.writeByte(deviceAddress, value: tCPointer)
-        let temperatureWord = i2c.readWord(deviceAddress, command: tCPointer)
-
-        let byteSwappedReading: UInt16 = UInt16(temperatureWord).byteSwapped
-        let signedValue = Int16(bitPattern: byteSwappedReading)
+        let temperatureWord = i2c.readWord(deviceAddress, command: tCPointer).byteSwapped
+        
+        // Our reading comes back as an unsigned int, but it represents
+        // a signed int so we need to convert accordingly
+        let signedValue = Int16(bitPattern: temperatureWord)
+        
+        // Default resolution of the MCP9600 is 0.0625C per lsb
         let finalTemperature = Float(signedValue) * 0.0625
         
         return finalTemperature
