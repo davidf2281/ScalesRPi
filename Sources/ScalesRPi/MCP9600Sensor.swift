@@ -18,6 +18,13 @@ class MCP9600Sensor: ScalesCore.Sensor {
     
     init(i2c: I2CInterface) {
         self.i2c = i2c
+        
+        if i2c.isReachable(deviceAddress) {
+            print("i2c reachable")
+        } else {
+            print("i2c is NOT reachable")
+        }
+
     }
     
     func start() {
@@ -29,7 +36,6 @@ class MCP9600Sensor: ScalesCore.Sensor {
     }
     
     private func getReading() -> Float {
-        
         // Writing register 0 of the device with address 0x68
         i2c.writeByte(deviceAddress, value: tCPointer)
         let upperByte = i2c.readByte(deviceAddress)
