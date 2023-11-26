@@ -26,7 +26,7 @@ struct ST7789: DisplayChipset {
         self.sendCommands([
             SWRESET(),
             COLMOD(bpp: self.bpp),
-            //MADCTL([.my]),
+            MADCTL([.my]),
             INVON(),
             SLPOUT(),
             DISPON()
