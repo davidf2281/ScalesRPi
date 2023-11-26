@@ -18,13 +18,6 @@ class MCP9600Sensor: ScalesCore.Sensor {
     
     init(i2c: I2CInterface) {
         self.i2c = i2c
-        
-        if i2c.isReachable(deviceAddress) {
-            print("i2c reachable")
-        } else {
-            print("i2c is NOT reachable")
-        }
-
     }
     
     func start() {
