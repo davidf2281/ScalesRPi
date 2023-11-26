@@ -20,7 +20,7 @@ class MCP9600Sensor: ScalesCore.Sensor {
     init(i2c: I2CInterface) {
         self.i2c = i2c
         
-//        i2c.writeByte(deviceAddress, value: revisionPointer)
+        i2c.writeByte(deviceAddress, value: revisionPointer)
         let deviceIDAndRevisionBytes = i2c.readData(deviceAddress, command: revisionPointer)
         for (index, byte) in deviceIDAndRevisionBytes.enumerated() {
             print("Device ID/revision byte \(index): \(byte)")
