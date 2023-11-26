@@ -14,15 +14,18 @@ class MCP9600Sensor: ScalesCore.Sensor {
     
     // I2C config
     private let deviceAddress: Int = 0x67
+    private let configPointer: UInt8 = 0b00000110
     private let tCPointer: UInt8 = 0x02
     private let revisionPointer: UInt8 = 0b00100000
     
     init(i2c: I2CInterface) {
         self.i2c = i2c
         
+        i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
+        
         i2c.writeByte(deviceAddress, value: revisionPointer)
-        let deviceIDByte = i2c.readByte(deviceAddress, command: revisionPointer)
-        let deviceRevisionByte = i2c.readByte(deviceAddress, command: revisionPointer)
+        let deviceIDByte = i2c.readByte(deviceAddress)
+        let deviceRevisionByte = i2c.readByte(deviceAddress)
         print("Device ID byte: \(deviceIDByte)")
         print("Device revision byte: \(deviceRevisionByte)")
 
