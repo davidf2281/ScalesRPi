@@ -45,6 +45,12 @@ struct Main {
         self.lcdBacklightPin?.direction = .OUT
         self.lcdBacklightPin?.value = 1
         
+        let buttonAPin = gpios[.P5]
+        buttonAPin?.direction = .IN
+        buttonAPin?.onChange({ buttonAPin in
+            print("Button A changed")
+        })
+        
         let dcPin = gpios[.P9]!
         dcPin.direction = .OUT
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
