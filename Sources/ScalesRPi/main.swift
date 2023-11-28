@@ -24,7 +24,7 @@ struct Main {
     let display: ST7789Display
     let coordinator: ScalesCore.Coordinator<MCP9600Sensor>
     let lcdBacklightPin: GPIO?
-    let buttonAPin: GPIOEdge
+    let buttonAPin: GPIO
     
     init() {
         
@@ -46,9 +46,9 @@ struct Main {
         self.lcdBacklightPin?.direction = .OUT
         self.lcdBacklightPin?.value = 1
         
-        self.buttonAPin = gpios[.P5]
-        buttonAPin?.direction = .IN
-        buttonAPin?.onChange({ buttonAPin in
+        self.buttonAPin = gpios[.P5]!
+        buttonAPin.direction = .IN
+        buttonAPin.onChange({ buttonAPin in
             print("Button A changed")
         })
         
