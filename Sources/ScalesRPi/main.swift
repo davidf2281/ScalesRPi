@@ -60,6 +60,16 @@ struct Main {
         let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
         self.sensor = MCP9600Sensor(i2c: i2c)
         
+        let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
+        
+        for slave in onewire.getSlaves() {
+            print("Slave: " + slave)
+            print("------------------------------------")
+            for data in onewire.readData(slave) {
+                print(data)
+            }
+        }
+        
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, display: display)
     }
 }
