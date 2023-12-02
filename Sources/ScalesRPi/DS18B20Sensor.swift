@@ -24,14 +24,12 @@ class DS18B20Sensor: ScalesCore.Sensor {
     }
     
     func start() {
-        func start() {
-            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
-                if let self {
-                    guard let reading = getReading() else {
-                        return
-                    }
-                    self.delegate?.didGetReading(reading)
+        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            if let self {
+                guard let reading = getReading() else {
+                    return
                 }
+                self.delegate?.didGetReading(reading)
             }
         }
     }
