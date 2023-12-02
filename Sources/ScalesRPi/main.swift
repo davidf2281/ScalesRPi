@@ -20,9 +20,9 @@ RunLoop.main.run()
 
 struct Main {
     
-    let sensor: MCP9600Sensor
+    let sensor: DS18B20Sensor
     let display: ST7789Display
-    let coordinator: ScalesCore.Coordinator<MCP9600Sensor>
+    let coordinator: ScalesCore.Coordinator<DS18B20Sensor>
     let lcdBacklightPin: GPIO?
     let buttonAPin: GPIO
     
@@ -58,17 +58,11 @@ struct Main {
         self.display = ST7789Display(spi: spi1, dc: dcPin)
         
         let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
-        self.sensor = MCP9600Sensor(i2c: i2c)
+//        self.sensor = MCP9600Sensor(i2c: i2c)
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
         
-        for slave in onewire.getSlaves() {
-            print("Slave: " + slave)
-            print("------------------------------------")
-            for data in onewire.readData(slave) {
-                print(data)
-            }
-        }
+        self.sensor = DS18B20Sensor(onewire: onewire)
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, display: display)
     }
