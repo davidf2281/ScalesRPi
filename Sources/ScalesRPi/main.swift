@@ -62,7 +62,7 @@ struct Main {
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
         
-        self.sensor = DS18B20Sensor(onewire: onewire)
+        self.sensor = DS18B20Sensor(onewire: onewire)!
         
         self.coordinator = ScalesCore.Coordinator(sensor: sensor, display: display)
     }
