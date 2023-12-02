@@ -18,7 +18,7 @@ class DS18B20Sensor: ScalesCore.Sensor {
             print("Slave: " + slave)
             print("------------------------------------")
             for data in onewire.readData(slave) {
-                print(data)
+                print("Slave data: \(data)")
             }
         }
     }
