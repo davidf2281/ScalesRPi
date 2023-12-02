@@ -37,9 +37,7 @@ class DS18B20Sensor: ScalesCore.Sensor {
     private func getReading() -> Float? {
         
         let dataLines = onewire.readData(self.slaveID)
-        
-        print(dataLines)
-        
+                
         guard dataLines.count == 2 else {
             return nil
         }
@@ -47,10 +45,7 @@ class DS18B20Sensor: ScalesCore.Sensor {
         let dataline = dataLines[1]
         
         let readingComponent = dataline.components(separatedBy: .whitespaces).last
-        
-        print(readingComponent ?? "")
-        print()
-        
+                
         guard let readingString = readingComponent?.replacingOccurrences(of: "t=", with: ""),
         let reading = Float(readingString) else {
             return nil
