@@ -57,7 +57,7 @@ struct Main {
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
         self.display = ST7789Display(spi: spi1, dc: dcPin)
         
-        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
+//        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
 //        self.sensor = MCP9600Sensor(i2c: i2c)
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]

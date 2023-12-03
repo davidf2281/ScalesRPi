@@ -14,8 +14,10 @@ class DS18B20Sensor: ScalesCore.Sensor {
     private let slaveID: String
     
     public init?(onewire: OneWireInterface) {
+        
         self.onewire = onewire
         
+        // Assume our sensor is first device on the bus
         guard let slaveID = onewire.getSlaves().first else {
             return nil
         }
@@ -37,7 +39,16 @@ class DS18B20Sensor: ScalesCore.Sensor {
     private func getReading() -> Float? {
         
         let dataLines = onewire.readData(self.slaveID)
-                
+        
+        /*
+         The DS18B20 linux driver produces two text output lines of the form:
+         
+            5c 01 4b 46 7f ff 04 10 a1 : crc=a1 YES
+            5c 01 4b 46 7f ff 04 10 a1 t=21750
+         
+         ...the 't=' param is the temperature in C, multiplied by 1000
+         */
+        
         guard dataLines.count == 2 else {
             return nil
         }
@@ -47,11 +58,10 @@ class DS18B20Sensor: ScalesCore.Sensor {
         let readingComponent = dataline.components(separatedBy: .whitespaces).last
                 
         guard let readingString = readingComponent?.replacingOccurrences(of: "t=", with: ""),
-        let reading = Float(readingString) else {
+              let reading = Float(readingString) else {
             return nil
         }
         
-        // DS18B20 output is an integer representing temp in celsius * 1000
         return reading / 1000
     }
 }
