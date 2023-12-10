@@ -7,6 +7,14 @@ class MCP9600Sensor: ScalesCore.Sensor {
     
     typealias T = Float
     
+    var id: String {
+        self.name
+    }
+    
+    let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
+    let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
+    let name: String
+    
     weak var delegate: (any SensorDelegate<T>)?
 
     private var timer: Timer?
@@ -18,8 +26,9 @@ class MCP9600Sensor: ScalesCore.Sensor {
     private let tCPointer: UInt8 = 0x02
     private let revisionPointer: UInt8 = 0b00100000
     
-    init(i2c: I2CInterface) {
+    init(i2c: I2CInterface, name: String) {
         self.i2c = i2c
+        self.name = name
         
         // Write all zeroes to the config register to make sure device is powered up
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
@@ -28,7 +37,9 @@ class MCP9600Sensor: ScalesCore.Sensor {
     func start() {
         self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             if let self {
-                self.delegate?.didGetReading(getReading())
+                Task {
+                    await self.delegate?.didGetReading(self.getReading())
+                }
             }
         }
     }
@@ -47,6 +58,13 @@ class MCP9600Sensor: ScalesCore.Sensor {
         return finalTemperature
     }
 }
+
+extension MCP9600Sensor: Equatable {
+    static func == (lhs: MCP9600Sensor, rhs: MCP9600Sensor) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
 
 extension Float: SensorOutput {
     public typealias T = Self

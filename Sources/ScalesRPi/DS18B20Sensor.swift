@@ -7,17 +7,25 @@ class DS18B20Sensor: ScalesCore.Sensor {
     
     typealias T = Float
 
+    var id: String {
+        self.name
+    }
+    
+    let name: String
+    
+    let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
+    let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
     weak var delegate: (any SensorDelegate<T>)?
     
     private var timer: Timer?
     private let onewire: OneWireInterface
     private let slaveID: String
     
-    public init?(onewire: OneWireInterface) {
+    public init?(onewire: OneWireInterface, name: String) {
         
         self.onewire = onewire
-        
-        // Assume our sensor is first device on the bus
+        self.name = name
+        // Assume sensor is first device on the bus
         guard let slaveID = onewire.getSlaves().first else {
             return nil
         }
@@ -31,7 +39,10 @@ class DS18B20Sensor: ScalesCore.Sensor {
                 guard let reading = getReading() else {
                     return
                 }
-                self.delegate?.didGetReading(reading)
+                
+                Task {
+                    await self.delegate?.didGetReading(reading)
+                }
             }
         }
     }
