@@ -9,10 +9,17 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-let main = Main()
+let signalQueue: DispatchQueue
+let main: Main
+
+do {
+    main = try Main()
+} catch {
+    fatalError("Could not create main")
+}
 
 // Setup shutdown handlers to handle SIGINT and SIGTERM
-let signalQueue = DispatchQueue(label: "shutdown")
+signalQueue = DispatchQueue(label: "shutdown")
 makeSignalSource(SIGTERM, backlightPin: main.lcdBacklightPin)
 makeSignalSource(SIGINT, backlightPin: main.lcdBacklightPin)
 
@@ -26,7 +33,7 @@ struct Main {
     let lcdBacklightPin: GPIO?
     let buttonAPin: GPIO
     
-    init() {
+    init() throws {
         
         print("ScalesRPi: Starting")
         
@@ -64,7 +71,7 @@ struct Main {
         
         self.sensor = DS18B20Sensor(onewire: onewire, name: "Outdoor temp DS18B20")!
         
-        self.coordinator = ScalesCore.Coordinator(sensor: sensor, display: display)
+        self.coordinator = try ScalesCore.Coordinator(sensor: sensor, display: display)
     }
 }
 
