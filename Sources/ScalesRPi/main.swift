@@ -15,6 +15,7 @@ let main: Main
 do {
     main = try Main()
 } catch {
+    print("Could not create main: \(error)")
     fatalError("Could not create main")
 }
 
