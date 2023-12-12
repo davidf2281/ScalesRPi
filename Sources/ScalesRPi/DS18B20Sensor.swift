@@ -41,7 +41,7 @@ class DS18B20Sensor: ScalesCore.Sensor {
                 }
                 
                 Task {
-                    await self.delegate?.didGetReading(0.2)
+                    await self.delegate?.didGetReading(reading)
                 }
             }
         }
