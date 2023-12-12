@@ -36,9 +36,9 @@ class DS18B20Sensor: ScalesCore.Sensor {
     func start() {
         self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             if let self {
-//                guard let reading = getReading() else {
-//                    return
-//                }
+                guard let reading = getReading() else {
+                    return
+                }
                 
                 Task {
                     await self.delegate?.didGetReading(0.2)
