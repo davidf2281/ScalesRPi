@@ -33,8 +33,8 @@ class DS18B20Sensor: ScalesCore.Sensor {
         self.slaveID = slaveID
     }
     
-    func start() {
-        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+    func start(minUpdateInterval: TimeInterval) {
+        self.timer = Timer.scheduledTimer(withTimeInterval: minUpdateInterval, repeats: true) { [weak self] timer in
             if let self {
                 guard let reading = getReading() else {
                     return

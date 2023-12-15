@@ -34,8 +34,8 @@ class MCP9600Sensor: ScalesCore.Sensor {
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
     }
     
-    func start() {
-        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+    func start(minUpdateInterval: TimeInterval) {
+        self.timer = Timer.scheduledTimer(withTimeInterval: minUpdateInterval, repeats: true) { [weak self] timer in
             if let self {
                 Task {
                     await self.delegate?.didGetReading(self.getReading())
