@@ -11,10 +11,12 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         self.name
     }
     
-    let name: String
+    var name: String {
+        self.outputType.toString + "_" + self.location.toString + "_" + "DS18B20-ID" + self.slaveID
+    }
     
     let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
-    let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
+    let location: ScalesCore.SensorLocation
     
     private let onewire: OneWireInterface
     private let slaveID: String
@@ -37,11 +39,11 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         }
     }
     
-    public init?(onewire: OneWireInterface, name: String, minUpdateInterval: TimeInterval) {
+    public init?(onewire: OneWireInterface, location: ScalesCore.SensorLocation, minUpdateInterval: TimeInterval) {
         
         self.onewire = onewire
-        self.name = name
         self.minUpdateInterval = minUpdateInterval
+        self.location = location
         
         // Assume sensor is first device on the bus
         guard let slaveID = onewire.getSlaves().first else {
@@ -61,7 +63,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
          5c 01 4b 46 7f ff 04 10 a1 : crc=a1 YES
          5c 01 4b 46 7f ff 04 10 a1 t=21750
          
-         ...the 't=' param is the temperature in C, multiplied by 1000
+         ...the 't=' param is the temperature in Celsius, multiplied by 1000
          */
         
         guard dataLines.count == 2 else {
