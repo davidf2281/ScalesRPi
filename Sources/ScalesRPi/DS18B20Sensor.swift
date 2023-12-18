@@ -3,10 +3,10 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-class DS18B20Sensor: ScalesCore.Sensor {
+final class DS18B20Sensor: ScalesCore.Sensor {
     
     typealias T = Float
-
+    
     var id: String {
         self.name
     }
@@ -15,11 +15,28 @@ class DS18B20Sensor: ScalesCore.Sensor {
     
     let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
-    weak var delegate: (any SensorDelegate<T>)?
+    weak var delegate: (any SensorDelegate)?
     
     private var timer: Timer?
     private let onewire: OneWireInterface
     private let slaveID: String
+    
+    lazy var readings = AsyncStream<T> { [weak self] continuation in
+        guard let self else { return }
+        
+        let task = Task {
+            while(true) {
+                if let reading = self.getReading() {
+                    continuation.yield(reading)
+                }
+                try await Task.sleep(for: .seconds(1))
+            }
+        }
+        
+        continuation.onTermination = { @Sendable _ in
+            task.cancel()
+        }
+    }
     
     public init?(onewire: OneWireInterface, name: String) {
         
@@ -41,7 +58,7 @@ class DS18B20Sensor: ScalesCore.Sensor {
                 }
                 
                 Task {
-                    await self.delegate?.didGetReading(reading)
+                    await self.delegate?.didGetReading(reading, sender: self)
                 }
             }
         }
@@ -54,8 +71,8 @@ class DS18B20Sensor: ScalesCore.Sensor {
         /*
          The DS18B20 linux driver produces two text output lines of the form:
          
-            5c 01 4b 46 7f ff 04 10 a1 : crc=a1 YES
-            5c 01 4b 46 7f ff 04 10 a1 t=21750
+         5c 01 4b 46 7f ff 04 10 a1 : crc=a1 YES
+         5c 01 4b 46 7f ff 04 10 a1 t=21750
          
          ...the 't=' param is the temperature in C, multiplied by 1000
          */
@@ -63,11 +80,11 @@ class DS18B20Sensor: ScalesCore.Sensor {
         guard dataLines.count == 2 else {
             return nil
         }
-
+        
         let dataline = dataLines[1]
         
         let readingComponent = dataline.components(separatedBy: .whitespaces).last
-                
+        
         guard let readingString = readingComponent?.replacingOccurrences(of: "t=", with: ""),
               let reading = Float(readingString) else {
             return nil

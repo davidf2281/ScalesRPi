@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "ScalesRPi",
-    platforms: [.macOS(.v12)],
+    platforms: [.macOS(.v13)],
     products: [
         .executable(name: "ScalesRPi", targets: ["ScalesRPi"]),
     ],

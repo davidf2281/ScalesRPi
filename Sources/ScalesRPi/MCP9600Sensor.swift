@@ -3,7 +3,7 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-class MCP9600Sensor: ScalesCore.Sensor {
+final class MCP9600Sensor: ScalesCore.Sensor {
     
     typealias T = Float
     
@@ -15,7 +15,7 @@ class MCP9600Sensor: ScalesCore.Sensor {
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
     let name: String
     
-    weak var delegate: (any SensorDelegate<T>)?
+    weak var delegate: (any SensorDelegate)?
 
     private var timer: Timer?
     private let i2c: I2CInterface
@@ -25,6 +25,21 @@ class MCP9600Sensor: ScalesCore.Sensor {
     private let configPointer: UInt8 = 0b00000110
     private let tCPointer: UInt8 = 0x02
     private let revisionPointer: UInt8 = 0b00100000
+        
+    lazy var readings = AsyncStream<T> { [weak self] continuation in
+        guard let self else { return }
+        
+        let task = Task {
+            while(true) {
+                continuation.yield(self.getReading())
+                try await Task.sleep(for: .seconds(1))
+            }
+        }
+        
+        continuation.onTermination = { @Sendable _ in
+            task.cancel()
+        }
+    }
     
     init(i2c: I2CInterface, name: String) {
         self.i2c = i2c
@@ -38,7 +53,7 @@ class MCP9600Sensor: ScalesCore.Sensor {
         self.timer = Timer.scheduledTimer(withTimeInterval: minUpdateInterval, repeats: true) { [weak self] timer in
             if let self {
                 Task {
-                    await self.delegate?.didGetReading(self.getReading())
+                    await self.delegate?.didGetReading(self.getReading(), sender: self)
                 }
             }
         }

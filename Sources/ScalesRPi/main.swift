@@ -72,7 +72,7 @@ struct Main {
         
         self.sensor = DS18B20Sensor(onewire: onewire, name: "Outdoor temp DS18B20")!
         
-        self.coordinator = try ScalesCore.Coordinator(sensor: sensor, display: display)
+        self.coordinator = try ScalesCore.Coordinator(temperatureSensors: [sensor.erasedToAnySensor], display: display)
     }
 }
 
