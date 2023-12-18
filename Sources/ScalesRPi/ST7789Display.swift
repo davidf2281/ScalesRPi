@@ -25,7 +25,6 @@ struct ST7789Display: ScalesCore.Display {
         do {
             try self.st7789.displayBuffer(packedPixels)
         } catch {
-            print("Attempting display re-initialize")
             try self.st7789.initializeDisplay()
             throw error
         }
