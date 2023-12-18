@@ -3,16 +3,12 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-final class DS18B20Sensor: ScalesCore.Sensor {
+final class DS18B20Sensor: ScalesCore.Sensor {    
     
     typealias T = Float
     
     var id: String {
-        self.name
-    }
-    
-    var name: String {
-        self.outputType.toString + "_" + self.location.toString + "_" + "DS18B20-ID" + self.slaveID
+        "DS18B20-ID" + self.slaveID
     }
     
     let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)

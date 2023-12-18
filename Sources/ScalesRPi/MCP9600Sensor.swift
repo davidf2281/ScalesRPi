@@ -8,12 +8,11 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     typealias T = Float
     
     var id: String {
-        self.name
+        "MCP9600-" + String(deviceAddress)
     }
     
     let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
-    let name: String
     
     private let i2c: I2CInterface
     private let minUpdateInterval: TimeInterval
@@ -38,9 +37,8 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         }
     }
     
-    init(i2c: I2CInterface, name: String, minUpdateInterval: TimeInterval) {
+    init(i2c: I2CInterface, minUpdateInterval: TimeInterval) {
         self.i2c = i2c
-        self.name = name
         self.minUpdateInterval = minUpdateInterval
         
         // Write all zeroes to the config register to make sure device is powered up
