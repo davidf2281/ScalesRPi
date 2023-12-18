@@ -10,18 +10,25 @@ struct ST7789Display: ScalesCore.Display {
     private let st7789: ST7789
     let resolution = Size(width: 240, height: 320)
     
-    init(spi: SPIInterface, dc: GPIO) {
+    init(spi: SPIInterface, dc: GPIO) throws {
         
         self.spi = spi
         self.dc = dc
      
         self.st7789 = ST7789(speed: 60000000, bpp: .bpp16, spi: spi, dc: dc, width: resolution.width, height: resolution.height)
-        self.st7789.initializeDisplay()
+        try self.st7789.initializeDisplay()
     }
     
-    func showFrame(_ frameBuffer: FrameBuffer) {
+    func showFrame(_ frameBuffer: FrameBuffer) throws {
         let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
-        self.st7789.displayBuffer(packedPixels)
+        
+        do {
+            try self.st7789.displayBuffer(packedPixels)
+        } catch {
+            print("Attempting display re-initialize")
+            try self.st7789.initializeDisplay()
+            throw error
+        }
     }
     
     private func pixelsPacked565(pixels24: [Color24]) -> [UInt16] {

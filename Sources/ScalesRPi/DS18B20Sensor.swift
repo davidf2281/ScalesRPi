@@ -15,11 +15,10 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     
     let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
-    weak var delegate: (any SensorDelegate)?
     
-    private var timer: Timer?
     private let onewire: OneWireInterface
     private let slaveID: String
+    private let minUpdateInterval: TimeInterval
     
     lazy var readings = AsyncStream<T> { [weak self] continuation in
         guard let self else { return }
@@ -29,7 +28,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
                 if let reading = self.getReading() {
                     continuation.yield(reading)
                 }
-                try await Task.sleep(for: .seconds(1))
+                try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
         }
         
@@ -38,30 +37,18 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         }
     }
     
-    public init?(onewire: OneWireInterface, name: String) {
+    public init?(onewire: OneWireInterface, name: String, minUpdateInterval: TimeInterval) {
         
         self.onewire = onewire
         self.name = name
+        self.minUpdateInterval = minUpdateInterval
+        
         // Assume sensor is first device on the bus
         guard let slaveID = onewire.getSlaves().first else {
             return nil
         }
         
         self.slaveID = slaveID
-    }
-    
-    func start(minUpdateInterval: TimeInterval) {
-        self.timer = Timer.scheduledTimer(withTimeInterval: minUpdateInterval, repeats: true) { [weak self] timer in
-            if let self {
-                guard let reading = getReading() else {
-                    return
-                }
-                
-                Task {
-                    await self.delegate?.didGetReading(reading, sender: self)
-                }
-            }
-        }
     }
     
     private func getReading() -> Float? {

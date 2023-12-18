@@ -63,14 +63,14 @@ struct Main {
         let dcPin = gpios[.P9]!
         dcPin.direction = .OUT
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
-        self.display = ST7789Display(spi: spi1, dc: dcPin)
+        try self.display = ST7789Display(spi: spi1, dc: dcPin)
         
 //        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
 //        self.sensor = MCP9600Sensor(i2c: i2c)
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
         
-        self.sensor = DS18B20Sensor(onewire: onewire, name: "Outdoor temp DS18B20")!
+        self.sensor = DS18B20Sensor(onewire: onewire, name: "Outdoor temp DS18B20", minUpdateInterval: 1.0)!
         
         self.coordinator = try ScalesCore.Coordinator(temperatureSensors: [sensor.erasedToAnySensor], display: display)
     }

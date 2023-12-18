@@ -10,7 +10,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/davidf2281/ScalesCore.git", branch: "main"),
-        .package(url: "https://github.com/davidf2281/SwiftyGPIO.git", branch: "master")
+        .package(url: "https://github.com/davidf2281/SwiftyGPIO.git", branch: "feature/throwing")
     ],
     targets: [
         .executableTarget(

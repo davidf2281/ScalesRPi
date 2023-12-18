@@ -15,11 +15,8 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
     let name: String
     
-    weak var delegate: (any SensorDelegate)?
-
-    private var timer: Timer?
     private let i2c: I2CInterface
-    
+    private let minUpdateInterval: TimeInterval
     // I2C config
     private let deviceAddress: Int = 0x67
     private let configPointer: UInt8 = 0b00000110
@@ -32,7 +29,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         let task = Task {
             while(true) {
                 continuation.yield(self.getReading())
-                try await Task.sleep(for: .seconds(1))
+                try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
         }
         
@@ -41,22 +38,13 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         }
     }
     
-    init(i2c: I2CInterface, name: String) {
+    init(i2c: I2CInterface, name: String, minUpdateInterval: TimeInterval) {
         self.i2c = i2c
         self.name = name
+        self.minUpdateInterval = minUpdateInterval
         
         // Write all zeroes to the config register to make sure device is powered up
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
-    }
-    
-    func start(minUpdateInterval: TimeInterval) {
-        self.timer = Timer.scheduledTimer(withTimeInterval: minUpdateInterval, repeats: true) { [weak self] timer in
-            if let self {
-                Task {
-                    await self.delegate?.didGetReading(self.getReading(), sender: self)
-                }
-            }
-        }
     }
     
     private func getReading() -> Float {

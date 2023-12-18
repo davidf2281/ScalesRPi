@@ -22,8 +22,8 @@ struct ST7789: DisplayChipset {
         self.height = height
     }
     
-    func initializeDisplay() {
-        self.sendCommands([
+    func initializeDisplay() throws {
+        try self.sendCommands([
             SWRESET(),
             COLMOD(bpp: self.bpp),
             MADCTL([.my]),
@@ -33,32 +33,32 @@ struct ST7789: DisplayChipset {
         ])
     }
     
-    func displayBuffer(_ buffer: [UInt16]) {
+    func displayBuffer(_ buffer: [UInt16]) throws {
                 
         // Set window to full display
-        self.sendCommand(CASET(startX: 0, endX: width - 1))
-        self.sendCommand(RASET(startY: 0, endY: height - 1))
+        try self.sendCommand(CASET(startX: 0, endX: width - 1))
+        try self.sendCommand(RASET(startY: 0, endY: height - 1))
         
         // Send RAM-write command
-        self.sendCommand(RAMWR())
+        try self.sendCommand(RAMWR())
                 
         // Send the frame
-        self.sendData(buffer.toUInt8)
+        try self.sendData(buffer.toUInt8)
     }
     
-    private func sendCommands(_ commands: [any ST7789Command]) {
+    private func sendCommands(_ commands: [any ST7789Command]) throws {
         for command in commands {
-            self.sendCommand(command)
+            try self.sendCommand(command)
         }
     }
     
-    private func sendCommand(_ command: any ST7789Command) {
+    private func sendCommand(_ command: any ST7789Command) throws {
         
         dc.level = .low
-        spi.send(safe: [command.commandByte.rawValue], speed: speed)
+        try spi.send(safe: [command.commandByte.rawValue], speed: speed)
         
         if let command = command as? (any ST7789ParameterizedCommand) {
-            self.sendData(command.parameters.asBytes)
+            try self.sendData(command.parameters.asBytes)
         }
         
         if let delay = command.postCommandDelay {
@@ -66,9 +66,9 @@ struct ST7789: DisplayChipset {
         }
     }
     
-    private func sendData(_ bytes: [UInt8]) {
+    private func sendData(_ bytes: [UInt8]) throws {
         dc.level = .high
-        spi.send(safe: bytes, speed: speed)
+        try spi.send(safe: bytes, speed: speed)
     }
 }
 
