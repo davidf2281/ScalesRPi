@@ -72,4 +72,8 @@ extension Float: SensorOutput {
     public var stringValue: String {
         String(format: "%.1f", self)
     }
+    
+    public var floatValue: Float {
+        self
+    }
 }
