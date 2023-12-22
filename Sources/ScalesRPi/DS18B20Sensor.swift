@@ -37,6 +37,10 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     
     public init?(onewire: OneWireInterface, location: ScalesCore.SensorLocation, minUpdateInterval: TimeInterval) {
         
+        if minUpdateInterval < 60 {
+            return nil
+        }
+        
         self.onewire = onewire
         self.minUpdateInterval = minUpdateInterval
         self.location = location
@@ -51,6 +55,19 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     
     private func getReading() -> Float? {
         
+        let oversampleCount = 16
+        var outputAccumulator: Float = 0.0
+        for _ in 0..<oversampleCount {
+            guard let reading = sensorReading() else {
+                return nil
+            }
+            outputAccumulator += reading
+        }
+        
+        return (outputAccumulator / Float(oversampleCount)) / 1000
+    }
+    
+    private func sensorReading() -> Float? {
         let dataLines = onewire.readData(self.slaveID)
         
         /*
@@ -75,6 +92,6 @@ final class DS18B20Sensor: ScalesCore.Sensor {
             return nil
         }
         
-        return reading / 1000
+        return reading
     }
 }

@@ -70,7 +70,7 @@ struct Main {
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
         
-        self.sensor = DS18B20Sensor(onewire: onewire, location: .outdoor(location: nil), minUpdateInterval: 1.0)!
+        self.sensor = DS18B20Sensor(onewire: onewire, location: .outdoor(location: nil), minUpdateInterval: 60.0)!
         
         self.coordinator = try ScalesCore.Coordinator(temperatureSensors: [sensor.erasedToAnySensor], display: display)
     }
