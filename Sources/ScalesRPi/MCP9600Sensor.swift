@@ -3,7 +3,7 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-final class MCP9600Sensor: ScalesCore.Sensor {
+final class MCP9600Sensor: ScalesCore.Sensor {    
     
     typealias T = Float
     
@@ -22,12 +22,13 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     private let tCPointer: UInt8 = 0x02
     private let revisionPointer: UInt8 = 0b00100000
         
-    lazy var readings = AsyncStream<T> { [weak self] continuation in
+    lazy var readings = AsyncStream<Result<T, Error>> { [weak self] continuation in
         guard let self else { return }
         
         let task = Task {
             while(true) {
-                continuation.yield(self.getReading())
+                let readingResult = self.getReading()
+                continuation.yield(readingResult)
                 try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
         }
@@ -45,7 +46,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
     }
     
-    private func getReading() -> Float {
+    private func getReading() -> Result<Float, Error> {
         i2c.writeByte(deviceAddress, value: tCPointer)
         let temperatureWord = i2c.readWord(deviceAddress, command: tCPointer).byteSwapped
         
@@ -56,7 +57,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         // Default resolution of the MCP9600 is 0.0625C per lsb
         let finalTemperature = Float(signedValue) * 0.0625
         
-        return finalTemperature
+        return .success(finalTemperature)
     }
 }
 
