@@ -88,7 +88,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
                         let sensorReading = try sensorReading()
                         outputAccumulator += sensorReading
                     }
-                    reading = outputAccumulator
+                    reading = outputAccumulator / Float(iterations)
             }
             
             return .success(reading / 1000)
