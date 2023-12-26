@@ -1,9 +1,3 @@
-//
-//  main.swift
-//
-//
-//  Created by David Fearon on 28/10/2023.
-//
 
 import Foundation
 import ScalesCore
@@ -15,7 +9,6 @@ let main: Main
 do {
     main = try Main()
 } catch {
-    print("Could not create main: \(error)")
     fatalError("Could not create main")
 }
 
@@ -81,7 +74,7 @@ func makeSignalSource(_ code: Int32, backlightPin: GPIO?) {
         source.cancel()
         print()
         backlightPin?.value = 0
-        print("Goodbye")
+        print("Exiting ScalesRPi")
         exit(0)
     }
     source.resume()

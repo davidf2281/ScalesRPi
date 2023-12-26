@@ -24,7 +24,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     private let minUpdateInterval: TimeInterval
     private let oversampleSetting: OversampleSetting
     
-    lazy var readings = AsyncStream<Result<T, Error>> { [weak self] continuation in
+    private(set) lazy var readings = AsyncStream<Result<Reading<T>, Error>> { [weak self] continuation in
         guard let self else { return }
         
         let task = Task {
@@ -42,7 +42,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     }
     
     public enum DS18B20Error: Error {
-        case minIntervalTooShort
+        case updateIntervalTooShort
         case readOneWireError
         case noSlavesFound
     }
@@ -51,13 +51,13 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         
         switch oversampleSetting {
             case .singleShot:
-                if minUpdateInterval < 1.0 {
-                    throw DS18B20Error.minIntervalTooShort
+                if minUpdateInterval < 0.75 { // DS18B20 max sample time is 0.75s
+                    throw DS18B20Error.updateIntervalTooShort
                 }
             case .oversample(iterations: let iterations):
-                let timeForAllIterations = TimeInterval(Float(iterations) * 0.75) // DS18B20 max sample time is 0.75s
+                let timeForAllIterations = TimeInterval(Float(iterations) * 0.75)
                 if minUpdateInterval < timeForAllIterations {
-                    throw DS18B20Error.minIntervalTooShort
+                    throw DS18B20Error.updateIntervalTooShort
                 }
         }
         
@@ -74,11 +74,12 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         self.slaveID = slaveID
     }
     
-    private func getReading() -> Result<Float, Error> {
+    private func getReading() -> Result<Reading<Float>, Error> {
         
         do {
             let reading: Float
             switch self.oversampleSetting {
+                    
                 case .singleShot:
                     reading = try sensorReading()
                     
@@ -90,8 +91,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
                     }
                     reading = outputAccumulator / Float(iterations)
             }
-            
-            return .success(reading / 1000)
+            return .success(Reading(outputType: self.outputType, value: reading / 1000))
         } catch {
             return .failure(error)
         }
