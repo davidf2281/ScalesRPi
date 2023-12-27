@@ -21,7 +21,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     private let configPointer: UInt8 = 0b00000110
     private let tCPointer: UInt8 = 0x02
     private let revisionPointer: UInt8 = 0b00100000
-        
+    
     private(set) lazy var readings = AsyncStream<Result<Reading<T>, Error>> { [weak self] continuation in
         guard let self else { return }
         
