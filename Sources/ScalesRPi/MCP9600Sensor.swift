@@ -41,7 +41,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         self.i2c = i2c
         self.minUpdateInterval = minUpdateInterval
         
-        // Write all zeroes to the config register to make sure device is powered up
+        // Write all zeroes to the config register to ensure device is powered up
         i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
     }
     
@@ -65,7 +65,6 @@ extension MCP9600Sensor: Equatable {
         lhs.id == rhs.id
     }
 }
-
 
 extension Float: SensorOutput {
     public typealias T = Self
