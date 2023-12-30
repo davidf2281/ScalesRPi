@@ -16,7 +16,6 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         "DS18B20-ID" + self.slaveID
     }
     
-    let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
     let location: ScalesCore.SensorLocation
     
     private let onewire: OneWireInterface
@@ -91,7 +90,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
                     }
                     reading = outputAccumulator / Float(iterations)
             }
-            return .success([Reading(outputType: self.outputType, value: reading / 1000)])
+            return .success([Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: reading / 1000)])
         } catch {
             return .failure(error)
         }

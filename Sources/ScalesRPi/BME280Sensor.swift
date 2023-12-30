@@ -12,7 +12,6 @@ final class BME280Sensor: ScalesCore.Sensor {
     }
     
     let location: ScalesCore.SensorLocation
-    let outputType: ScalesCore.SensorOutputType = .barometricPressure(unit: .hPa)
     
     private let slaveID: Int = 0x67
     private let minUpdateInterval: TimeInterval
@@ -56,7 +55,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         // To read out data after a conversion, it is strongly recommended to use a burst read and not address every register individually.
         // Data readout is done by starting a burst read from 0xF7 to 0xFC (temperature and pressure) or from 0xF7 to 0xFE (temperature, pressure and humidity). The data are read out in an unsigned 20-bit format both for pressure and for temperature and in an unsigned 16-bit format for humidity. It is strongly recommended to use the BME280 API, available from Bosch Sensortec, for readout and compensation. For details on memory map and interfaces, please consult chapters 5 and 6 respectively.
         
-        return [Reading(outputType: self.outputType, value: 0)]
+        return [Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: 0)]
     }
 }
 

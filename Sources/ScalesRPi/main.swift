@@ -22,7 +22,7 @@ RunLoop.main.run()
 struct Main {
     
     let display: ST7789Display
-    let coordinator: ScalesCore.Coordinator<DS18B20Sensor>
+    let coordinator: ScalesCore.Coordinator<Float>
     let lcdBacklightPin: GPIO?
     let buttonAPin: GPIO
     
@@ -58,13 +58,12 @@ struct Main {
         try self.display = ST7789Display(spi: spi1, dc: dcPin)
         
         let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
-//        self.sensor = MCP9600Sensor(i2c: i2c)
         
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
         
         let sensor = try DS18B20Sensor(onewire: onewire, location: .outdoor(location: nil), minUpdateInterval: 60.0)
         
-        self.coordinator = try ScalesCore.Coordinator(temperatureSensors: [sensor.erasedToAnySensor], display: display)
+        self.coordinator = try ScalesCore.Coordinator(sensors: [sensor.erasedToAnySensor], display: display)
     }
 }
 

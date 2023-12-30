@@ -11,7 +11,6 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         "MCP9600-" + String(deviceAddress)
     }
     
-    let outputType: ScalesCore.SensorOutputType = .temperature(unit: .celsius)
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
     
     private let i2c: I2CInterface
@@ -57,7 +56,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         // Default resolution of the MCP9600 is 0.0625C per lsb
         let finalTemperature = Float(signedValue) * 0.0625
         
-        return .success([Reading(outputType: self.outputType, value: finalTemperature)])
+        return .success([Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: finalTemperature)])
     }
 }
 
