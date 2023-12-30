@@ -3,7 +3,7 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-final class BME280Sensor: ScalesCore.Sensor {
+final class BME280Sensor: ScalesCore.Sensor {    
     
     typealias T = Float
     
@@ -18,12 +18,13 @@ final class BME280Sensor: ScalesCore.Sensor {
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
     
-    private(set) lazy var readings = AsyncStream<Result<Reading<T>, Error>> { [weak self] continuation in
+    private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
+        
         guard let self else { return }
         
         let task = Task {
-            while(true) {
-                let readingResult = self.getReading()
+            while(Task.isNotCancelled) {
+                let readingResult = self.getReadings()
                 continuation.yield(readingResult)
                 try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
@@ -38,13 +39,15 @@ final class BME280Sensor: ScalesCore.Sensor {
         self.i2c = i2c
         self.location = location
         self.minUpdateInterval = minUpdateInterval
+        
+        // TODO: Read the calibration compensation values from device non-volatile memory
     }
     
-    private func getReading() -> Result<Reading<T>, Error> {
-        return .success(self.sensorReading())
+    private func getReadings() -> Result<[Reading<T>], Error> {
+        return .success(self.sensorReadings())
     }
     
-    private func sensorReading() -> Reading<T> {
+    private func sensorReadings() -> [Reading<T>] {
         // Set Mode[1:0] = 11 to enable force-measurement mode
         // Enable pressure, humidity, temperature
         // The humidity measurement is controlled by the osrs_h[2:0] setting
@@ -53,7 +56,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         // To read out data after a conversion, it is strongly recommended to use a burst read and not address every register individually.
         // Data readout is done by starting a burst read from 0xF7 to 0xFC (temperature and pressure) or from 0xF7 to 0xFE (temperature, pressure and humidity). The data are read out in an unsigned 20-bit format both for pressure and for temperature and in an unsigned 16-bit format for humidity. It is strongly recommended to use the BME280 API, available from Bosch Sensortec, for readout and compensation. For details on memory map and interfaces, please consult chapters 5 and 6 respectively.
         
-        return Reading(outputType: self.outputType, value: 0)
+        return [Reading(outputType: self.outputType, value: 0)]
     }
 }
 
@@ -111,5 +114,4 @@ final class BME280Sensor: ScalesCore.Sensor {
  v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
  return (BME280_U32_t)(v_x1_u32r>>12);
  }
- 
  */

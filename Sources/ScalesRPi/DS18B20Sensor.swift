@@ -24,11 +24,11 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     private let minUpdateInterval: TimeInterval
     private let oversampleSetting: OversampleSetting
     
-    private(set) lazy var readings = AsyncStream<Result<Reading<T>, Error>> { [weak self] continuation in
+    private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
         guard let self else { return }
         
         let task = Task {
-            while(true) {
+            while(Task.isNotCancelled) {
                 let readingResult = self.getReading()
                 continuation.yield(readingResult)
                 
@@ -74,7 +74,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         self.slaveID = slaveID
     }
     
-    private func getReading() -> Result<Reading<Float>, Error> {
+    private func getReading() -> Result<[Reading<Float>], Error> {
         
         do {
             let reading: Float
@@ -91,7 +91,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
                     }
                     reading = outputAccumulator / Float(iterations)
             }
-            return .success(Reading(outputType: self.outputType, value: reading / 1000))
+            return .success([Reading(outputType: self.outputType, value: reading / 1000)])
         } catch {
             return .failure(error)
         }
