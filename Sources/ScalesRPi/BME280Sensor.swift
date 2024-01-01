@@ -14,7 +14,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     let location: ScalesCore.SensorLocation
     
-    private let slaveID: Int = 0x67
+    private let slaveID: Int = 0x76
     private let sensorIDRegisterAddress: UInt8 = 0xD0
     
     private let minUpdateInterval: TimeInterval
