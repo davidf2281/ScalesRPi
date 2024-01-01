@@ -57,13 +57,13 @@ struct Main {
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
         try self.display = ST7789Display(spi: spi1, dc: dcPin)
         
-        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
-        
         let onewire = SwiftyGPIO.hardware1Wires(for: zero2W)![0]
+        let outdoorTempSensor = try DS18B20Sensor(onewire: onewire, location: .outdoor(location: nil), minUpdateInterval: 60.0).erasedToAnySensor
         
-        let sensor = try DS18B20Sensor(onewire: onewire, location: .outdoor(location: nil), minUpdateInterval: 60.0)
+        let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
+        let indoorTempPressureHumiditySensor = BME280Sensor(i2c: i2c, location: .indoor(location: nil), minUpdateInterval: 60.0).erasedToAnySensor
         
-        self.coordinator = try ScalesCore.Coordinator(sensors: [sensor.erasedToAnySensor], display: display)
+        self.coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display)
     }
 }
 

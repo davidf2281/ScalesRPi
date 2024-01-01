@@ -1,0 +1,3 @@
+module ScalesRPiC {
+  header "ScalesRPiC.h"
+}

@@ -108,11 +108,9 @@ final class DS18B20Sensor: ScalesCore.Sensor {
          ...the 't=' param is the temperature in Celsius, multiplied by 1000
          */
         
-        guard dataLines.count == 2 else {
+        guard let dataline = dataLines[safe: 1] else {
             throw OneWireInterfaceError.readError
         }
-        
-        let dataline = dataLines[1]
         
         let readingComponent = dataline.components(separatedBy: .whitespaces).last
         
