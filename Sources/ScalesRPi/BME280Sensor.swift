@@ -15,7 +15,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     let location: ScalesCore.SensorLocation
     
     private let slaveID: Int = 0x67
-    private let sensorIDAddress = 0xD0
+    private let sensorIDRegisterAddress: UInt8 = 0xD0
     
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
@@ -103,7 +103,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         self.location = location
         self.minUpdateInterval = minUpdateInterval
         
-        let sensorID = i2c.readByte(sensorIDAddress)
+        let sensorID = i2c.readByte(slaveID, command: sensorIDRegisterAddress)
         
         print("BME280 sensor id: \(sensorID)")
         
