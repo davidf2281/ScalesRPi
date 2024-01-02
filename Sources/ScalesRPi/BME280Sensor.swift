@@ -104,8 +104,8 @@ final class BME280Sensor: ScalesCore.Sensor {
         print("BME280 sensor id: \(sensorID)")
         
         // Reset the device:
-        i2c.writeQuick(slaveID)
-        i2c.writeByte(Int(resetRegisterAddress), value: 0xB6)
+        i2c.writeByte(slaveID, command: resetRegisterAddress, value: 0xB6)
+        Thread.sleep(forTimeInterval: 1.0)
         
         // Read the calibration compensation values from device non-volatile memory
         
@@ -138,19 +138,13 @@ final class BME280Sensor: ScalesCore.Sensor {
         print("t3: \(t3) (\(t3high), \(t3low))")
         
         // Write humidity config, which apparently must be done before writing measurement config
-        /*
-         i2c.writeQuick(slaveID)
-         i2c.writeByte(Int(resetRegisterAddress), value: 0xB6)
-         */
-        i2c.writeQuick(slaveID)
         let humidityConfig: UInt8 = 0 // Skip humidity measurement
-        i2c.writeByte(Int(ctrlHumRegisterAddress), value: humidityConfig)
+        i2c.writeByte(slaveID, command: ctrlHumRegisterAddress, value: humidityConfig)
         
         // Write measurement config, which should kick off a measurement
-        i2c.writeQuick(slaveID)
         let ctrlMeasConfig: UInt8 = 0b01101110 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
-        i2c.writeByte(Int(ctrlMeasRegisterAddress), value: ctrlMeasConfig)
-        
+        i2c.writeByte(slaveID, command: ctrlMeasRegisterAddress, value: ctrlMeasConfig)
+
         // Wait for measurement
         // TODO: Get rid of this
         Thread.sleep(forTimeInterval: 0.1)
