@@ -111,35 +111,16 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Read t1 compensation value
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
-        i2c.writeByte(slaveID, value: t1baseAddress.rawValue)
-        let t1low = i2c.readByte(slaveID)
-        let t1high = i2c.readByte(slaveID)
-        
-        let t1 = (UInt16(t1high) << 8) | UInt16(t1low)
-        
-        print("t1: \(t1) (\(t1high), \(t1low))")
-        
-        let altT1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
-        
-        print("Alt t1: \(altT1)")
+        let t1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
+        print("t1: \(t1)")
         
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
-        i2c.writeByte(slaveID, value: t2baseAddress.rawValue)
-        let t2low = i2c.readByte(slaveID)
-        let t2high = i2c.readByte(slaveID)
-        
-        let t2 = (Int16(bitPattern: UInt16(t2high)) << 8) | Int16(bitPattern: UInt16(t2low))
-        
-        print("t2: \(t2) (\(t2high), \(t2low))")
-        
+        let t2 = Int16(bitPattern: i2c.readWord(slaveID, command: t2baseAddress.rawValue))
+        print("t2: \(t2)")
+                
         let t3baseAddress: BME280RegisterBaseAddress = .digT3
-        i2c.writeByte(slaveID, value: t3baseAddress.rawValue)
-        let t3low = i2c.readByte(slaveID)
-        let t3high = i2c.readByte(slaveID)
-        
-        let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) | Int16(bitPattern: UInt16(t3low))
-        
-        print("t3: \(t3) (\(t3high), \(t3low))")
+        let t3 = Int16(bitPattern: i2c.readWord(slaveID, command: t3baseAddress.rawValue))
+        print("t3: \(t3)")
         
         // Write humidity config, which apparently must be done before writing measurement config
         let humidityConfig: UInt8 = 0 // Skip humidity measurement
@@ -154,21 +135,10 @@ final class BME280Sensor: ScalesCore.Sensor {
         Thread.sleep(forTimeInterval: 0.1)
         
         // Read temperature
-//        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
+        let temperatureByte1 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress) // MSB
         
-//        let readout = i2c.readData(slaveID, command: temperatureReadoutBaseAddress)
-//        
-//        for (index, byte) in readout.enumerated() {
-//            print("Temperature byte\(index): \(byte)")
-//        }
-        
-//        let temperatureByte1 = i2c.readByte(slaveID) // MSB
-        let temperatureByte1 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress)
-        
-//        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 1)
         let temperatureByte2 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 1)
         
-//        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 2)
         let temperatureByte3 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 2) // LSB (top four bits only)
         
         // Temperature readout is the top 20 bits of the three bytes
