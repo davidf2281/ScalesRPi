@@ -112,7 +112,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Read t1 compensation value
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
-        let t1 = UInt16(bitPattern:Int16(i2c.readWord(slaveID, command: t1baseAddress.rawValue)))
+        let t1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
         print("t1: \(t1)")
         
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
