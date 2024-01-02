@@ -152,7 +152,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Read temperature
 //        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
         
-        let readout = i2c.readI2CData(slaveID, command: temperatureReadoutBaseAddress)
+        let readout = i2c.readData(slaveID, command: temperatureReadoutBaseAddress)
         
         for (index, byte) in readout.enumerated() {
             print("Temperature byte\(index): \(byte)")
