@@ -154,14 +154,20 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: 0, dig_p2: 0, dig_p3: 0, dig_p4: 0, dig_p5: 0, dig_p6: 0, dig_p7: 0, dig_p8: 0, dig_p9: 0, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
         
-        let newShinyTemperature = compensate_temperature(UnsafePointer<bme280_uncomp_data>(&uncompData), UnsafeMutablePointer<bme280_calib_data>(&calibData))
+        withUnsafePointer(to: uncompData) { uncompPtr in
+            withUnsafeMutablePointer(to: &calibData) { calibDataPtr in
+                let newShinyTemperature = compensate_temperature(uncompPtr, calibDataPtr)
+                print("Or maybe: \(newShinyTemperature)C")
+            }
+        }
+        
+//        let newShinyTemperature = compensate_temperature(uncompData, calibData)
         
         let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
         
         let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
         
         print("Temperature, possibly: \(temperature)C")
-        print("Or maybe: \(newShinyTemperature)C")
 
     }
     
