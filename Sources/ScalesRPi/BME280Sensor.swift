@@ -112,15 +112,15 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Read t1 compensation value
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
-        let t1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
+        let t1 = UInt16(bitPattern:Int16(i2c.readWord(slaveID, command: t1baseAddress.rawValue)))
         print("t1: \(t1)")
         
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
-        let t2 = Int16(i2c.readWord(slaveID, command: t2baseAddress.rawValue))
+        let t2 = Int16(bitPattern: i2c.readWord(slaveID, command: t2baseAddress.rawValue))
         print("t2: \(t2)")
                 
         let t3baseAddress: BME280RegisterBaseAddress = .digT3
-        let t3 = Int16(i2c.readWord(slaveID, command: t3baseAddress.rawValue))
+        let t3 = Int16(bitPattern: i2c.readWord(slaveID, command: t3baseAddress.rawValue))
         print("t3: \(t3)")
         
         // Write humidity config, which apparently must be done before writing measurement config
