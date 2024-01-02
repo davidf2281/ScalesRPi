@@ -16,6 +16,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     private let slaveID: Int = 0x76
     private let IDRegisterAddress: UInt8 = 0xD0
+    private let resetRegisterAddress: UInt8 = 0xE0
     private let ctrlHumRegisterAddress: UInt8 = 0xF2
     private let ctrlMeasRegisterAddress: UInt8 = 0xF4
     private let temperatureReadoutBaseAddress: UInt8 = 0xFA
@@ -102,14 +103,17 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("BME280 sensor id: \(sensorID)")
         
+        // Reset the device:
+        i2c.writeQuick(slaveID)
+        i2c.writeByte(Int(resetRegisterAddress), value: 0xB6)
+        
         // Read the calibration compensation values from device non-volatile memory
         
         // Read t1 compensation value
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
         i2c.writeByte(slaveID, value: t1baseAddress.rawValue)
-        let t1high = i2c.readByte(slaveID)
-        i2c.writeByte(slaveID, value: t1baseAddress.rawValue + 1)
         let t1low = i2c.readByte(slaveID)
+        let t1high = i2c.readByte(slaveID)
         
         let t1 = (UInt16(t1high) << 8) | UInt16(t1low)
         
@@ -117,8 +121,8 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
         i2c.writeByte(slaveID, value: t2baseAddress.rawValue)
-        let t2high = i2c.readByte(slaveID)
         let t2low = i2c.readByte(slaveID)
+        let t2high = i2c.readByte(slaveID)
         
         let t2 = (Int16(bitPattern: UInt16(t2high)) << 8) | Int16(bitPattern: UInt16(t2low))
         
@@ -126,24 +130,30 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         let t3baseAddress: BME280RegisterBaseAddress = .digT3
         i2c.writeByte(slaveID, value: t3baseAddress.rawValue)
-        let t3high = i2c.readByte(slaveID)
         let t3low = i2c.readByte(slaveID)
+        let t3high = i2c.readByte(slaveID)
         
         let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) | Int16(bitPattern: UInt16(t3low))
         
         print("t3: \(t3) (\(t3high), \(t3low))")
         
         // Write humidity config, which apparently must be done before writing measurement config
+        /*
+         i2c.writeQuick(slaveID)
+         i2c.writeByte(Int(resetRegisterAddress), value: 0xB6)
+         */
+        i2c.writeQuick(slaveID)
         let humidityConfig: UInt8 = 0 // Skip humidity measurement
-        i2c.writeData(slaveID, command: ctrlHumRegisterAddress, values: [humidityConfig])
+        i2c.writeByte(Int(ctrlHumRegisterAddress), value: humidityConfig)
         
         // Write measurement config, which should kick off a measurement
+        i2c.writeQuick(slaveID)
         let ctrlMeasConfig: UInt8 = 0b01101110 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
-        i2c.writeData(slaveID, command: ctrlMeasRegisterAddress, values: [ctrlMeasConfig])
+        i2c.writeByte(Int(ctrlMeasRegisterAddress), value: ctrlMeasConfig)
         
         // Wait for measurement
         // TODO: Get rid of this
-        Thread.sleep(forTimeInterval: 1)
+        Thread.sleep(forTimeInterval: 0.1)
         
         // Read temperature
         i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
