@@ -108,6 +108,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
         i2c.writeByte(slaveID, value: t1baseAddress.rawValue)
         let t1high = i2c.readByte(slaveID)
+        i2c.writeByte(slaveID, value: t1baseAddress.rawValue + 1)
         let t1low = i2c.readByte(slaveID)
         
         let t1 = (UInt16(t1high) << 8) | UInt16(t1low)
@@ -137,7 +138,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         i2c.writeData(slaveID, command: ctrlHumRegisterAddress, values: [humidityConfig])
         
         // Write measurement config, which should kick off a measurement
-        let ctrlMeasConfig: UInt8 = 0b01101101 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
+        let ctrlMeasConfig: UInt8 = 0b01101110 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
         i2c.writeData(slaveID, command: ctrlMeasRegisterAddress, values: [ctrlMeasConfig])
         
         // Wait for measurement
