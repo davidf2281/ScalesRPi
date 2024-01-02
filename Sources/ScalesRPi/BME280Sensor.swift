@@ -142,7 +142,11 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Read temperature
         i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
         let temperatureByte1 = i2c.readByte(slaveID) // MSB
+        
+        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 1)
         let temperatureByte2 = i2c.readByte(slaveID)
+        
+        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 2)
         let temperatureByte3 = i2c.readByte(slaveID) // LSB (top four bits only)
         
         // Temperature readout is the top 20 bits of the three bytes
