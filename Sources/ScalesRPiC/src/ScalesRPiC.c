@@ -1,7 +1,7 @@
 
 #include "ScalesRPiC.h"
 
-BME280_S32_t t_fine(BME280_S32_t adc_T, 
+BME280_S32_t t_fine(BME280_S32_t adc_T,
                     unsigned short dig_T1,
                     signed short dig_T2,
                     signed short dig_T3) {
