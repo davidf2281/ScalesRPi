@@ -148,6 +148,8 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Temperature readout is the top 20 bits of the three bytes
         let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 13) + (UInt32(temperatureByte2) << 4) + (UInt32(temperatureByte3) >> 4)
         
+        print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
+        
         let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
         
         let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
