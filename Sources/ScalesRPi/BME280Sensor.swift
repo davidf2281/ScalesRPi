@@ -16,6 +16,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     private let slaveID: Int = 0x76
     private let IDRegisterAddress: UInt8 = 0xD0
+    private let ctrlHumRegisterAddress: UInt8 = 0xF2
     private let ctrlMeasRegisterAddress: UInt8 = 0xF4
     private let temperatureReadoutBaseAddress: UInt8 = 0xFA
     private let minUpdateInterval: TimeInterval
@@ -130,6 +131,10 @@ final class BME280Sensor: ScalesCore.Sensor {
         let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) | Int16(bitPattern: UInt16(t3low))
         
         print("t3: \(t3) (\(t3high), \(t3low))")
+        
+        // Write humidity config, which apparently must be done before writing measurement config
+        let humidityConfig: UInt8 = 0 // Skip humidity measurement
+        i2c.writeData(slaveID, command: ctrlHumRegisterAddress, values: [humidityConfig])
         
         // Write measurement config, which should kick off a measurement
         let ctrlMeasConfig: UInt8 = 0b01101101 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
