@@ -70,3 +70,6 @@ BME280_U32_t bme280_compensate_H_int32(BME280_S32_t adc_H,
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
     return (BME280_U32_t)(v_x1_u32r>>12);
 }
+
+
+

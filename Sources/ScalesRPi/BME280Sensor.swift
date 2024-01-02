@@ -22,6 +22,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     private let temperatureReadoutBaseAddress: UInt8 = 0xFA
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
+    
     enum BME280RegisterBaseAddress: UInt8 {
         
         case digT1 = 0x88
@@ -149,11 +150,19 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
         
+        var uncompData = bme280_uncomp_data(pressure: 0, temperature: temp20BitUnsignedRepresentation, humidity: 0)
+        
+        var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: 0, dig_p2: 0, dig_p3: 0, dig_p4: 0, dig_p5: 0, dig_p6: 0, dig_p7: 0, dig_p8: 0, dig_p9: 0, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
+        
+        let newShinyTemperature = compensate_temperature(UnsafePointer<bme280_uncomp_data>(&uncompData), UnsafeMutablePointer<bme280_calib_data>(&calibData))
+        
         let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
         
         let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
         
         print("Temperature, possibly: \(temperature)C")
+        print("Or maybe: \(newShinyTemperature)C")
+
     }
     
     private func getReadings() -> Result<[Reading<T>], Error> {
