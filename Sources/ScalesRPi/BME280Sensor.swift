@@ -109,14 +109,16 @@ final class BME280Sensor: ScalesCore.Sensor {
         let t1high = i2c.readByte(slaveID)
         let t1low = i2c.readByte(slaveID)
         
-        let t1 = (UInt16(t1high) << 8) + UInt16(t1low)
+        let t1 = (UInt16(t1high) << 8) | UInt16(t1low)
+        
+        print("t1: \(t1) (\(t1high), \(t1low))")
         
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
         i2c.writeByte(slaveID, value: t2baseAddress.rawValue)
         let t2high = i2c.readByte(slaveID)
         let t2low = i2c.readByte(slaveID)
         
-        let t2 = (Int16(bitPattern: UInt16(t2high)) << 8) + Int16(bitPattern: UInt16(t2low))
+        let t2 = (Int16(bitPattern: UInt16(t2high)) << 8) | Int16(bitPattern: UInt16(t2low))
         
         print("t2: \(t2) (\(t2high), \(t2low))")
         
@@ -125,7 +127,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         let t3high = i2c.readByte(slaveID)
         let t3low = i2c.readByte(slaveID)
         
-        let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) + Int16(bitPattern: UInt16(t3low))
+        let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) | Int16(bitPattern: UInt16(t3low))
         
         print("t3: \(t3) (\(t3high), \(t3low))")
         
@@ -135,7 +137,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Wait for measurement
         // TODO: Get rid of this
-        Thread.sleep(forTimeInterval: 0.1)
+        Thread.sleep(forTimeInterval: 1)
         
         // Read temperature
         i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
