@@ -119,6 +119,10 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("t1: \(t1) (\(t1high), \(t1low))")
         
+        let altT1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
+        
+        print("Alt t1: \(altT1)")
+        
         let t2baseAddress: BME280RegisterBaseAddress = .digT2
         i2c.writeByte(slaveID, value: t2baseAddress.rawValue)
         let t2low = i2c.readByte(slaveID)
@@ -152,30 +156,31 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Read temperature
 //        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
         
-        let readout = i2c.readData(slaveID, command: temperatureReadoutBaseAddress)
-        
-        for (index, byte) in readout.enumerated() {
-            print("Temperature byte\(index): \(byte)")
-        }
+//        let readout = i2c.readData(slaveID, command: temperatureReadoutBaseAddress)
+//        
+//        for (index, byte) in readout.enumerated() {
+//            print("Temperature byte\(index): \(byte)")
+//        }
         
 //        let temperatureByte1 = i2c.readByte(slaveID) // MSB
-//        
+        let temperatureByte1 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress)
+        
 //        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 1)
-//        let temperatureByte2 = i2c.readByte(slaveID)
-//        
+        let temperatureByte2 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 1)
+        
 //        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress + 2)
-//        let temperatureByte3 = i2c.readByte(slaveID) // LSB (top four bits only)
-//        
-//        // Temperature readout is the top 20 bits of the three bytes
-//        let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 13) + (UInt32(temperatureByte2) << 4) + (UInt32(temperatureByte3) >> 4)
-//        
-//        print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
-//        
-//        let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
-//        
-//        let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
-//        
-//        print("Temperature, possibly: \(temperature)C")
+        let temperatureByte3 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 2) // LSB (top four bits only)
+        
+        // Temperature readout is the top 20 bits of the three bytes
+        let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 13) + (UInt32(temperatureByte2) << 4) + (UInt32(temperatureByte3) >> 4)
+        
+        print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
+        
+        let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
+        
+        let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
+        
+        print("Temperature, possibly: \(temperature)C")
     }
     
     private func getReadings() -> Result<[Reading<T>], Error> {
