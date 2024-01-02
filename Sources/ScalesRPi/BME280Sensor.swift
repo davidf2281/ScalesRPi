@@ -145,7 +145,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         print("Raw temperature byte 3: \(temperatureByte3)")
 
         // Temperature readout is the top 20 bits of the three bytes
-        let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 13) + (UInt32(temperatureByte2) << 4) + (UInt32(temperatureByte3) >> 4)
+        let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 12) | (UInt32(temperatureByte2) << 4) | (UInt32(temperatureByte3) >> 4)
         
         print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
         
