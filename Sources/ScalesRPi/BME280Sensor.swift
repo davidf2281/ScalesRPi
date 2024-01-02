@@ -19,7 +19,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
-    enum BME280RegisterBaseAddress: Int {
+    enum BME280RegisterBaseAddress: UInt8 {
         
         case digT1 = 0x88
         case digT2 = 0xBA
@@ -41,14 +41,6 @@ final class BME280Sensor: ScalesCore.Sensor {
         case digH4 = 0xE4
         case digH5 = 0xE5
         case digH6 = 0xE7
-        
-        var lowerAddress: Int {
-            return self.rawValue
-        }
-        
-        var upperAddress: Int {
-            return self.rawValue + 1
-        }
     }
     
     struct BME280CompensationParameters {
@@ -109,6 +101,16 @@ final class BME280Sensor: ScalesCore.Sensor {
         print("BME280 sensor id: \(sensorID)")
         
         // TODO: Read the calibration compensation values from device non-volatile memory
+        
+        // Read t1 compensation value
+        let t1baseAddress: BME280RegisterBaseAddress = .digT1
+        i2c.writeByte(slaveID, value: t1baseAddress.rawValue)
+        let t1high = i2c.readByte(slaveID)
+        let t1low = i2c.readByte(slaveID)
+        
+        let t1 = (UInt16(t1high) << 8) + UInt16(t1low)
+        
+        print("t1: \(t1) (\(t1high), \(t1low))")
     }
     
     private func getReadings() -> Result<[Reading<T>], Error> {
