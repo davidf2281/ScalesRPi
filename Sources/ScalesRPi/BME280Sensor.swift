@@ -16,7 +16,8 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     private let slaveID: Int = 0x76
     private let IDRegisterAddress: UInt8 = 0xD0
-    
+    private let ctrlMeasRegisterAddress: UInt8 = 0xF4
+    private let temperatureReadoutBaseAddress: UInt8 = 0xFA
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
     enum BME280RegisterBaseAddress: UInt8 {
@@ -100,7 +101,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("BME280 sensor id: \(sensorID)")
         
-        // TODO: Read the calibration compensation values from device non-volatile memory
+        // Read the calibration compensation values from device non-volatile memory
         
         // Read t1 compensation value
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
@@ -110,7 +111,46 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         let t1 = (UInt16(t1high) << 8) + UInt16(t1low)
         
-        print("t1: \(t1) (\(t1high), \(t1low))")
+        let t2baseAddress: BME280RegisterBaseAddress = .digT2
+        i2c.writeByte(slaveID, value: t2baseAddress.rawValue)
+        let t2high = i2c.readByte(slaveID)
+        let t2low = i2c.readByte(slaveID)
+        
+        let t2 = (Int16(bitPattern: UInt16(t2high)) << 8) + Int16(bitPattern: UInt16(t2low))
+        
+        print("t2: \(t2) (\(t2high), \(t2low))")
+        
+        let t3baseAddress: BME280RegisterBaseAddress = .digT3
+        i2c.writeByte(slaveID, value: t3baseAddress.rawValue)
+        let t3high = i2c.readByte(slaveID)
+        let t3low = i2c.readByte(slaveID)
+        
+        let t3 = (Int16(bitPattern: UInt16(t3high)) << 8) + Int16(bitPattern: UInt16(t3low))
+        
+        print("t3: \(t3) (\(t3high), \(t3low))")
+        
+        // Write measurement config, which should kick off a measurement
+        let ctrlMeasConfig: UInt8 = 0b01101101 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
+        i2c.writeData(slaveID, command: ctrlMeasRegisterAddress, values: [ctrlMeasConfig])
+        
+        // Wait for measurement
+        // TODO: Get rid of this
+        Thread.sleep(forTimeInterval: 0.1)
+        
+        // Read temperature
+        i2c.writeByte(slaveID, value: temperatureReadoutBaseAddress)
+        let temperatureByte1 = i2c.readByte(slaveID) // MSB
+        let temperatureByte2 = i2c.readByte(slaveID)
+        let temperatureByte3 = i2c.readByte(slaveID) // LSB (top four bits only)
+        
+        // Temperature readout is the top 20 bits of the three bytes
+        let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 13) + (UInt32(temperatureByte2) << 4) + (UInt32(temperatureByte3) >> 4)
+        
+        let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
+        
+        let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
+        
+        print("Temperature, possibly: \(temperature)C")
     }
     
     private func getReadings() -> Result<[Reading<T>], Error> {
