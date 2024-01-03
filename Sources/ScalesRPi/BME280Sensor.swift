@@ -68,11 +68,10 @@ final class BME280Sensor: ScalesCore.Sensor {
                 let readingResult = try await self.getReadings()
                 continuation.yield(readingResult)
                 switch readingResult {
-                    case .success(let readings):
-                        print("BME280 readings: \(readings[0].value.stringValue), \(readings[1].value.stringValue)")
-
                     case .failure(let error):
                         print("BME280 error: \(error.localizedDescription)")
+                    default:
+                        break
                 }
                 try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
