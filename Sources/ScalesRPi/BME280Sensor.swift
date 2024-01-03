@@ -206,7 +206,7 @@ final class BME280Sensor: ScalesCore.Sensor {
                 // Note: compensate_temperature() must be called before compensate_pressure()
                 // because it calculates and sets t_fine in the calibData struct
                 let temperature = compensate_temperature(uncompPtr, calibDataPtr)
-                let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 1000 // Divide by 1000 for Pascals to hPa / mb
+                let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Divide by 100 for Pascals to hPa / mb
                 return (temperature: temperature, pressure: pressure)
             }
         }
