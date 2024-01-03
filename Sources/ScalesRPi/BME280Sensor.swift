@@ -177,7 +177,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Wait for measurement
         // TODO: Get rid of this
-        try await Task.sleep(nanoseconds: 100000000) // 0.1 seconds
+        try await Task.sleep(for: .milliseconds(100))
         
         // Read pressure
         let pressureByte1 = i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue) // MSB
