@@ -119,7 +119,44 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Read the calibration compensation values from device non-volatile memory
         
-        // Read t1 compensation value
+        // Read pressure compensation values
+        let p1baseAddress: BME280RegisterBaseAddress = .digP1
+        let p1 = i2c.readWord(slaveID, command: p1baseAddress.rawValue)
+        print("p1: \(p1)")
+        
+        let p2baseAddress: BME280RegisterBaseAddress = .digP2
+        let p2 = Int16(bitPattern: i2c.readWord(slaveID, command: p2baseAddress.rawValue))
+        print("p2: \(p2)")
+        
+        let p3baseAddress: BME280RegisterBaseAddress = .digP3
+        let p3 = Int16(bitPattern: i2c.readWord(slaveID, command: p3baseAddress.rawValue))
+        print("p3: \(p3)")
+        
+        let p4baseAddress: BME280RegisterBaseAddress = .digP4
+        let p4 = Int16(bitPattern: i2c.readWord(slaveID, command: p4baseAddress.rawValue))
+        print("p4: \(p4)")
+        
+        let p5baseAddress: BME280RegisterBaseAddress = .digP5
+        let p5 = Int16(bitPattern: i2c.readWord(slaveID, command: p5baseAddress.rawValue))
+        print("p5: \(p5)")
+        
+        let p6baseAddress: BME280RegisterBaseAddress = .digP6
+        let p6 = Int16(bitPattern: i2c.readWord(slaveID, command: p6baseAddress.rawValue))
+        print("p6: \(p6)")
+        
+        let p7baseAddress: BME280RegisterBaseAddress = .digP7
+        let p7 = Int16(bitPattern: i2c.readWord(slaveID, command: p7baseAddress.rawValue))
+        print("p7: \(p7)")
+        
+        let p8baseAddress: BME280RegisterBaseAddress = .digP8
+        let p8 = Int16(bitPattern: i2c.readWord(slaveID, command: p8baseAddress.rawValue))
+        print("p8: \(p8)")
+        
+        let p9baseAddress: BME280RegisterBaseAddress = .digP9
+        let p9 = Int16(bitPattern: i2c.readWord(slaveID, command: p9baseAddress.rawValue))
+        print("p9: \(p9)")
+        
+        // Read temperature compensation values
         let t1baseAddress: BME280RegisterBaseAddress = .digT1
         let t1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
         print("t1: \(t1)")
@@ -174,7 +211,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         let uncompData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, temperature: temp20BitUnsignedRepresentation, humidity: 0)
         
-        var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: 0, dig_p2: 0, dig_p3: 0, dig_p4: 0, dig_p5: 0, dig_p6: 0, dig_p7: 0, dig_p8: 0, dig_p9: 0, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
+        var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: p1, dig_p2: p2, dig_p3: p3, dig_p4: p4, dig_p5: p5, dig_p6: p6, dig_p7: p7, dig_p8: p8, dig_p9: p9, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
         
         let temperatureAndPressure: (temperature: Double, pressure: Double) = withUnsafePointer(to: uncompData) { uncompPtr in
             withUnsafeMutablePointer(to: &calibData) { calibDataPtr in
