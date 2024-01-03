@@ -69,7 +69,7 @@ final class BME280Sensor: ScalesCore.Sensor {
                 continuation.yield(readingResult)
                 switch readingResult {
                     case .success(let readings):
-                        print("BME280 readings: \(readings[0].value.stringValue), \(readings[1])")
+                        print("BME280 readings: \(readings[0].value.stringValue), \(readings[1].value.stringValue)")
 
                     case .failure(let error):
                         print("BME280 error: \(error.localizedDescription)")
