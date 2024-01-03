@@ -26,7 +26,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     enum BME280RegisterBaseAddress: UInt8 {
         
         case digT1 = 0x88
-        case digT2 = 0xBA
+        case digT2 = 0x8A
         case digT3 = 0x8C
         
         case digP1 = 0x8E
@@ -150,7 +150,7 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
         
-        var uncompData = bme280_uncomp_data(pressure: 0, temperature: temp20BitUnsignedRepresentation, humidity: 0)
+        let uncompData = bme280_uncomp_data(pressure: 0, temperature: temp20BitUnsignedRepresentation, humidity: 0)
         
         var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: 0, dig_p2: 0, dig_p3: 0, dig_p4: 0, dig_p5: 0, dig_p6: 0, dig_p7: 0, dig_p8: 0, dig_p9: 0, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
         
