@@ -1,75 +1,72 @@
 
 #include "ScalesRPiC.h"
 
-BME280_S32_t t_fine(BME280_S32_t adc_T,
-                    unsigned short dig_T1,
-                    signed short dig_T2,
-                    signed short dig_T3) {
-    BME280_S32_t var1, var2, t_fine;
-    var1 = ((((adc_T >> 3) - ((BME280_S32_t)dig_T1 << 1))) * ((BME280_S32_t)dig_T2)) >> 11;
-    var2 = (((((adc_T >> 4) - ((BME280_S32_t)dig_T1)) * ((adc_T>>4) - ((BME280_S32_t)dig_T1))) >> 12) * ((BME280_S32_t)dig_T3)) >> 14;
-    t_fine = var1 + var2;
-    return t_fine;
-}
+double compensate_temperature(const struct bme280_uncomp_data *uncomp_data, struct bme280_calib_data *calib_data) {
+    double var1;
+    double var2;
+    double temperature;
+    double temperature_min = -40;
+    double temperature_max = 85;
 
-// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
-BME280_S32_t BME280_compensate_T_int32(BME280_S32_t t_fine) {
-    BME280_S32_t T;
-    T = (t_fine * 5 + 128) >> 8;
-    return T;
-}
+    var1 = (((double)uncomp_data->temperature) / 16384.0 - ((double)calib_data->dig_t1) / 1024.0);
+    var1 = var1 * ((double)calib_data->dig_t2);
+    var2 = (((double)uncomp_data->temperature) / 131072.0 - ((double)calib_data->dig_t1) / 8192.0);
+    var2 = (var2 * var2) * ((double)calib_data->dig_t3);
+    calib_data->t_fine = (int32_t)(var1 + var2);
+    temperature = (var1 + var2) / 5120.0;
 
-// Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
-// Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
-BME280_U32_t BME280_compensate_P_int64(BME280_S32_t adc_P, 
-                                       BME280_S32_t t_fine,
-                                       unsigned short dig_P1,
-                                       signed short dig_P2,
-                                       signed short dig_P3,
-                                       signed short dig_P4,
-                                       signed short dig_P5,
-                                       signed short dig_P6,
-                                       signed short dig_P7,
-                                       signed short dig_P8,
-                                       signed short dig_P9)
-{
-    BME280_S64_t var1, var2, p;
-    var1 = ((BME280_S64_t)t_fine) - 128000;
-    var2 = var1 * var1 * (BME280_S64_t)dig_P6;
-    var2 = var2 + ((var1 * (BME280_S64_t)dig_P5) <<17);
-    var2 = var2 + (((BME280_S64_t)dig_P4) << 35);
-    var1 = ((var1 * var1 * (BME280_S64_t)dig_P3) >> 8) + ((var1 * (BME280_S64_t)dig_P2) <<12);
-    var1 = (((((BME280_S64_t)1) << 47) + var1)) * ((BME280_S64_t)dig_P1) >> 33;
-    if (var1 == 0) {
-        return 0; // avoid exception caused by division by zero
+    if (temperature < temperature_min)
+    {
+        temperature = temperature_min;
     }
-    p = 1048576 - adc_P;
-    p = (((p<<31) - var2)*3125) / var1;
-    var1 = (((BME280_S64_t)dig_P9) * (p>>13) * (p>>13)) >> 25;
-    var2 = (((BME280_S64_t)dig_P8) * p) >> 19;
-    p = ((p + var1 + var2) >> 8) + (((BME280_S64_t)dig_P7) << 4);
-    return (BME280_U32_t)p;
+    else if (temperature > temperature_max)
+    {
+        temperature = temperature_max;
+    }
+
+    return temperature;
 }
 
-// Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
-// Output value of “47445” represents 47445/1024 = 46.333 %RH
-BME280_U32_t bme280_compensate_H_int32(BME280_S32_t adc_H,
-                                       BME280_S32_t t_fine,
-                                       unsigned char dig_H1,
-                                       signed short dig_H2,
-                                       unsigned char dig_H3,
-                                       signed short dig_H4,
-                                       signed short dig_H5,
-                                       signed char dig_H6)
+double compensate_pressure(const struct bme280_uncomp_data *uncomp_data,
+                                  const struct bme280_calib_data *calib_data)
 {
-    BME280_S32_t v_x1_u32r;
-    v_x1_u32r = (t_fine - ((BME280_S32_t)76800));
-    v_x1_u32r = (((((adc_H << 14) - (((BME280_S32_t)dig_H4) << 20) - (((BME280_S32_t)dig_H5) * v_x1_u32r)) + ((BME280_S32_t)16384)) >> 15) * (((((((v_x1_u32r * ((BME280_S32_t)dig_H6)) >> 10) * (((v_x1_u32r * ((BME280_S32_t)dig_H3)) >> 11) + ((BME280_S32_t)32768))) >> 10) + ((BME280_S32_t)2097152)) * ((BME280_S32_t)dig_H2) + 8192) >> 14));
-    v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((BME280_S32_t)dig_H1)) >> 4));
-    v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
-    v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-    return (BME280_U32_t)(v_x1_u32r>>12);
+    double var1;
+    double var2;
+    double var3;
+    double pressure;
+    double pressure_min = 30000.0;
+    double pressure_max = 110000.0;
+
+    var1 = ((double)calib_data->t_fine / 2.0) - 64000.0;
+    var2 = var1 * var1 * ((double)calib_data->dig_p6) / 32768.0;
+    var2 = var2 + var1 * ((double)calib_data->dig_p5) * 2.0;
+    var2 = (var2 / 4.0) + (((double)calib_data->dig_p4) * 65536.0);
+    var3 = ((double)calib_data->dig_p3) * var1 * var1 / 524288.0;
+    var1 = (var3 + ((double)calib_data->dig_p2) * var1) / 524288.0;
+    var1 = (1.0 + var1 / 32768.0) * ((double)calib_data->dig_p1);
+
+    /* Avoid exception caused by division by zero */
+    if (var1 > (0.0))
+    {
+        pressure = 1048576.0 - (double) uncomp_data->pressure;
+        pressure = (pressure - (var2 / 4096.0)) * 6250.0 / var1;
+        var1 = ((double)calib_data->dig_p9) * pressure * pressure / 2147483648.0;
+        var2 = pressure * ((double)calib_data->dig_p8) / 32768.0;
+        pressure = pressure + (var1 + var2 + ((double)calib_data->dig_p7)) / 16.0;
+
+        if (pressure < pressure_min)
+        {
+            pressure = pressure_min;
+        }
+        else if (pressure > pressure_max)
+        {
+            pressure = pressure_max;
+        }
+    }
+    else /* Invalid case */
+    {
+        pressure = pressure_min;
+    }
+
+    return pressure;
 }
-
-
-

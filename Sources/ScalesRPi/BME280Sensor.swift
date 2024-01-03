@@ -6,23 +6,6 @@ import ScalesRPiC
 
 final class BME280Sensor: ScalesCore.Sensor {
     
-    typealias T = Float
-    
-    var id: String {
-        "BME280-ID\(self.slaveID)"
-    }
-    
-    let location: ScalesCore.SensorLocation
-    
-    private let slaveID: Int = 0x76
-    private let IDRegisterAddress: UInt8 = 0xD0
-    private let resetRegisterAddress: UInt8 = 0xE0
-    private let ctrlHumRegisterAddress: UInt8 = 0xF2
-    private let ctrlMeasRegisterAddress: UInt8 = 0xF4
-    private let temperatureReadoutBaseAddress: UInt8 = 0xFA
-    private let minUpdateInterval: TimeInterval
-    private let i2c: I2CInterface
-    
     enum BME280RegisterBaseAddress: UInt8 {
         
         case digT1 = 0x88
@@ -77,6 +60,32 @@ final class BME280Sensor: ScalesCore.Sensor {
         let digH6: Int8
     }
     
+    enum BME280RegisterAddress: UInt8 {
+        case id = 0xD0
+        case reset = 0xE0
+        case ctrlHum = 0xF2
+        case ctrlMeas = 0xF4
+        case pressureData = 0xF7
+        case temperatureData = 0xFA
+    }
+    
+    typealias T = Float
+    
+    var id: String {
+        "BME280-ID\(self.slaveID)"
+    }
+    
+    let location: ScalesCore.SensorLocation
+    
+    private let slaveID: Int = 0x76
+//    private let idRegisterAddress: UInt8 = 0xD0
+//    private let resetRegisterAddress: UInt8 = 0xE0
+//    private let ctrlHumRegisterAddress: UInt8 = 0xF2
+//    private let ctrlMeasRegisterAddress: UInt8 = 0xF4
+//    private let temperatureReadoutBaseAddress: UInt8 = 0xFA
+    private let minUpdateInterval: TimeInterval
+    private let i2c: I2CInterface
+    
     private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
         
         guard let self else { return }
@@ -99,13 +108,13 @@ final class BME280Sensor: ScalesCore.Sensor {
         self.location = location
         self.minUpdateInterval = minUpdateInterval
         
-        i2c.writeByte(slaveID, value: IDRegisterAddress)
+        i2c.writeByte(slaveID, value: BME280RegisterAddress.id.rawValue)
         let sensorID = i2c.readByte(slaveID)
         
         print("BME280 sensor id: \(sensorID)")
         
         // Reset the device:
-        i2c.writeByte(slaveID, command: resetRegisterAddress, value: 0xB6)
+        i2c.writeByte(slaveID, command: BME280RegisterAddress.reset.rawValue, value: 0xB6)
         Thread.sleep(forTimeInterval: 1.0)
         
         // Read the calibration compensation values from device non-volatile memory
@@ -125,24 +134,37 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Write humidity config, which apparently must be done before writing measurement config
         let humidityConfig: UInt8 = 0 // Skip humidity measurement
-        i2c.writeByte(slaveID, command: ctrlHumRegisterAddress, value: humidityConfig)
+        i2c.writeByte(slaveID, command: BME280RegisterAddress.ctrlHum.rawValue, value: humidityConfig)
         
         // Write measurement config, which should kick off a measurement
         let ctrlMeasConfig: UInt8 = 0b01101110 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
-        i2c.writeByte(slaveID, command: ctrlMeasRegisterAddress, value: ctrlMeasConfig)
+        i2c.writeByte(slaveID, command: BME280RegisterAddress.ctrlMeas.rawValue, value: ctrlMeasConfig)
 
         // Wait for measurement
         // TODO: Get rid of this
         Thread.sleep(forTimeInterval: 0.1)
         
+        // Read pressure
+        let pressureByte1 = i2c.readByte(slaveID, command: BME280RegisterAddress.pressureData.rawValue) // MSB
+        print("Raw pressure byte 1: \(pressureByte1)")
+        
+        let pressureByte2 = i2c.readByte(slaveID, command: BME280RegisterAddress.pressureData.rawValue + 1)
+        print("Raw pressure byte 2: \(pressureByte2)")
+
+        let pressureByte3 = i2c.readByte(slaveID, command: BME280RegisterAddress.pressureData.rawValue + 2) // LSB (top four bits only)
+        print("Raw pressure byte 3: \(pressureByte3)")
+        
+        // Pressure readout is the top 20 bits of the three bytes
+        let pressure20BitUnsignedRepresentation: UInt32 = (UInt32(pressureByte1) << 12) | (UInt32(pressureByte2) << 4) | (UInt32(pressureByte3) >> 4)
+        
         // Read temperature
-        let temperatureByte1 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress) // MSB
+        let temperatureByte1 = i2c.readByte(slaveID, command: BME280RegisterAddress.temperatureData.rawValue) // MSB
         print("Raw temperature byte 1: \(temperatureByte1)")
         
-        let temperatureByte2 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 1)
+        let temperatureByte2 = i2c.readByte(slaveID, command: BME280RegisterAddress.temperatureData.rawValue + 1)
         print("Raw temperature byte 2: \(temperatureByte2)")
 
-        let temperatureByte3 = i2c.readByte(slaveID, command: temperatureReadoutBaseAddress + 2) // LSB (top four bits only)
+        let temperatureByte3 = i2c.readByte(slaveID, command: BME280RegisterAddress.temperatureData.rawValue + 2) // LSB (top four bits only)
         print("Raw temperature byte 3: \(temperatureByte3)")
 
         // Temperature readout is the top 20 bits of the three bytes
@@ -150,25 +172,23 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         print("Raw temperature output: \(temp20BitUnsignedRepresentation)")
         
-        let uncompData = bme280_uncomp_data(pressure: 0, temperature: temp20BitUnsignedRepresentation, humidity: 0)
+        let uncompData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, temperature: temp20BitUnsignedRepresentation, humidity: 0)
         
         var calibData = bme280_calib_data(dig_t1: t1, dig_t2: t2, dig_t3: t3, dig_p1: 0, dig_p2: 0, dig_p3: 0, dig_p4: 0, dig_p5: 0, dig_p6: 0, dig_p7: 0, dig_p8: 0, dig_p9: 0, dig_h1: 0, dig_h2: 0, dig_h3: 0, dig_h4: 0, dig_h5: 0, dig_h6: 0, t_fine: 0)
         
-        withUnsafePointer(to: uncompData) { uncompPtr in
+        let temperatureAndPressure: (temperature: Double, pressure: Double) = withUnsafePointer(to: uncompData) { uncompPtr in
             withUnsafeMutablePointer(to: &calibData) { calibDataPtr in
-                let newShinyTemperature = compensate_temperature(uncompPtr, calibDataPtr)
-                print("Or maybe: \(newShinyTemperature)C")
+                // Note: compensate_temperature() must be called before compensate_pressure()
+                // because it calculates and sets t_fine in the calibData struct
+                let temperature = compensate_temperature(uncompPtr, calibDataPtr)
+                let pressure = compensate_pressure(uncompPtr, calibDataPtr)
+                return (temperature: temperature, pressure: pressure)
             }
         }
-        
-//        let newShinyTemperature = compensate_temperature(uncompData, calibData)
-        
-        let tFine = t_fine(Int32(temp20BitUnsignedRepresentation), t1, t2, t3)
-        
-        let temperature = Float(BME280_compensate_T_int32(tFine)) / 100
-        
-        print("Temperature, possibly: \(temperature)C")
 
+        print("t_fine (which should be non-zero): \(calibData.t_fine)")
+        print("Temperature: \(temperatureAndPressure.temperature)C")
+        print("Pressure: \(temperatureAndPressure.pressure)hPa")
     }
     
     private func getReadings() -> Result<[Reading<T>], Error> {
