@@ -5,6 +5,7 @@ import SwiftyGPIO
 
 let signalQueue: DispatchQueue
 let main: Main
+var coordinator: ScalesCore.Coordinator<Float>?
 
 do {
     main = try Main()
@@ -22,7 +23,6 @@ RunLoop.main.run()
 struct Main {
     
     let display: ST7789Display
-    let coordinator: ScalesCore.Coordinator<Float>
     let lcdBacklightPin: GPIO?
     let buttonAPin: GPIO
     
@@ -63,18 +63,22 @@ struct Main {
         let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
         let indoorTempPressureHumiditySensor = BME280Sensor(i2c: i2c, location: .indoor(location: nil), minUpdateInterval: 60.0).erasedToAnySensor
         
-        self.coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display)
+        coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display)
     }
 }
 
 func makeSignalSource(_ code: Int32, backlightPin: GPIO?) {
     let source = DispatchSource.makeSignalSource(signal: code, queue: signalQueue)
     source.setEventHandler {
-        source.cancel()
-        print()
-        backlightPin?.value = 0
-        print("Exiting ScalesRPi")
-        exit(0)
+        Task {
+            print("Flushing data to disk")
+            try await coordinator?.flushAllToDisk()
+            source.cancel()
+            print()
+            backlightPin?.value = 0
+            print("Exiting ScalesRPi")
+            exit(0)
+        }
     }
     source.resume()
     signal(code, SIG_IGN)
