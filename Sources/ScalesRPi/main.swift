@@ -71,10 +71,15 @@ func makeSignalSource(_ code: Int32, backlightPin: GPIO?) {
     let source = DispatchSource.makeSignalSource(signal: code, queue: signalQueue)
     source.setEventHandler {
         Task {
-            print("Flushing data to disk")
-            try await coordinator?.flushAllToDisk()
-            source.cancel()
             print()
+            print("Flushing data to disk")
+            let result = await coordinator?.flushAllToDisk()
+            if case .failure(let error) = result {
+                for errorString in error.errorDescriptions {
+                    print(errorString)
+                }
+            }
+            source.cancel()
             backlightPin?.value = 0
             print("Exiting ScalesRPi")
             exit(0)
