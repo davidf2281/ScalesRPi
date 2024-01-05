@@ -9,6 +9,7 @@ struct ST7789Display: ScalesCore.Display {
     private let dc: GPIO
     private let st7789: ST7789
     let resolution = Size(width: 240, height: 320)
+    let aspect: Aspect = .portrait
     
     init(spi: SPIInterface, dc: GPIO) throws {
         
