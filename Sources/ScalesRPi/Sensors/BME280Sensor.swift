@@ -86,77 +86,52 @@ final class BME280Sensor: ScalesCore.Sensor {
         self.i2c = i2c
         self.location = location
         self.minUpdateInterval = minUpdateInterval
-        
-        i2c.writeByte(slaveID, value: ControlRegisterAddress.deviceID.rawValue)
-        let sensorID = i2c.readByte(slaveID)
-        
-        print("BME280 sensor id: \(sensorID)")
-        
-        // Reset the device:
-        i2c.writeByte(slaveID, command: ControlRegisterAddress.reset.rawValue, value: 0xB6)
-        Thread.sleep(forTimeInterval: 0.1)
-                
+        Self.resetDevice(i2c: i2c, slaveID: slaveID)
         self.calibrationData = Self.readCalibrationData(i2c: i2c, slaveID: slaveID)
     }
     
+    private static func resetDevice(i2c: I2CInterface, slaveID: Int) {
+        i2c.writeByte(slaveID, command: ControlRegisterAddress.reset.rawValue, value: 0xB6)
+        Thread.sleep(forTimeInterval: 0.1)
+    }
+    
     private static func readCalibrationData(i2c: I2CInterface, slaveID: Int) -> bme280_calib_data {
+        
         // Read pressure compensation values
-        let p1baseAddress: CalibrationRegisterBaseAddress = .digP1
-        let p1 = i2c.readWord(slaveID, command: p1baseAddress.rawValue)
-        
-        let p2baseAddress: CalibrationRegisterBaseAddress = .digP2
-        let p2 = Int16(bitPattern: i2c.readWord(slaveID, command: p2baseAddress.rawValue))
-        
-        let p3baseAddress: CalibrationRegisterBaseAddress = .digP3
-        let p3 = Int16(bitPattern: i2c.readWord(slaveID, command: p3baseAddress.rawValue))
-        
-        let p4baseAddress: CalibrationRegisterBaseAddress = .digP4
-        let p4 = Int16(bitPattern: i2c.readWord(slaveID, command: p4baseAddress.rawValue))
-        
-        let p5baseAddress: CalibrationRegisterBaseAddress = .digP5
-        let p5 = Int16(bitPattern: i2c.readWord(slaveID, command: p5baseAddress.rawValue))
-        
-        let p6baseAddress: CalibrationRegisterBaseAddress = .digP6
-        let p6 = Int16(bitPattern: i2c.readWord(slaveID, command: p6baseAddress.rawValue))
-        
-        let p7baseAddress: CalibrationRegisterBaseAddress = .digP7
-        let p7 = Int16(bitPattern: i2c.readWord(slaveID, command: p7baseAddress.rawValue))
-        
-        let p8baseAddress: CalibrationRegisterBaseAddress = .digP8
-        let p8 = Int16(bitPattern: i2c.readWord(slaveID, command: p8baseAddress.rawValue))
-        
-        let p9baseAddress: CalibrationRegisterBaseAddress = .digP9
-        let p9 = Int16(bitPattern: i2c.readWord(slaveID, command: p9baseAddress.rawValue))
+        let p1 = i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP1.rawValue)
+        let p2 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP2.rawValue))
+        let p3 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP3.rawValue))
+        let p4 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP4.rawValue))
+        let p5 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP5.rawValue))
+        let p6 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP6.rawValue))
+        let p7 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP7.rawValue))
+        let p8 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP8.rawValue))
+        let p9 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP9.rawValue))
         
         // Read temperature compensation values
-        let t1baseAddress: CalibrationRegisterBaseAddress = .digT1
-        let t1 = i2c.readWord(slaveID, command: t1baseAddress.rawValue)
-        
-        let t2baseAddress: CalibrationRegisterBaseAddress = .digT2
-        let t2 = Int16(bitPattern: i2c.readWord(slaveID, command: t2baseAddress.rawValue))
-                
-        let t3baseAddress: CalibrationRegisterBaseAddress = .digT3
-        let t3 = Int16(bitPattern: i2c.readWord(slaveID, command: t3baseAddress.rawValue))
+        let t1 = i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
+        let t2 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT2.rawValue))
+        let t3 = Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT3.rawValue))
         
         return bme280_calib_data(dig_t1: t1,
-                                                 dig_t2: t2,
-                                                 dig_t3: t3,
-                                                 dig_p1: p1,
-                                                 dig_p2: p2,
-                                                 dig_p3: p3,
-                                                 dig_p4: p4,
-                                                 dig_p5: p5,
-                                                 dig_p6: p6,
-                                                 dig_p7: p7,
-                                                 dig_p8: p8,
-                                                 dig_p9: p9,
-                                                 dig_h1: 0,
-                                                 dig_h2: 0,
-                                                 dig_h3: 0,
-                                                 dig_h4: 0,
-                                                 dig_h5: 0,
-                                                 dig_h6: 0,
-                                                 t_fine: 0)
+                                 dig_t2: t2,
+                                 dig_t3: t3,
+                                 dig_p1: p1,
+                                 dig_p2: p2,
+                                 dig_p3: p3,
+                                 dig_p4: p4,
+                                 dig_p5: p5,
+                                 dig_p6: p6,
+                                 dig_p7: p7,
+                                 dig_p8: p8,
+                                 dig_p9: p9,
+                                 dig_h1: 0,
+                                 dig_h2: 0,
+                                 dig_h3: 0,
+                                 dig_h4: 0,
+                                 dig_h5: 0,
+                                 dig_h6: 0,
+                                 t_fine: 0)
     }
     
     private func getReadings() async throws -> Result<[Reading<T>], Error> {
@@ -166,23 +141,20 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     private func sensorReadings() async throws -> [Reading<T>] {
               
-        // Write humidity config, which apparently must be done before writing measurement config
+        // Write humidity config, which acccording to the BME280 datasheet must be done before writing measurement config
         let humidityConfig: UInt8 = 0 // Skip humidity measurement
         i2c.writeByte(slaveID, command: ControlRegisterAddress.ctrlHum.rawValue, value: humidityConfig)
         
-        // Write measurement config, which should kick off a measurement
+        // Write measurement config to put the device into forced mode, which will start a measurement
         let ctrlMeasConfig: UInt8 = 0b01101110 // 4x temperature oversampling, 4x pressure oversample, sensor to forced mode.
         i2c.writeByte(slaveID, command: ControlRegisterAddress.ctrlMeas.rawValue, value: ctrlMeasConfig)
         
         // Wait for measurement
-        // TODO: Get rid of this
         try await Task.sleep(for: .milliseconds(100))
         
         // Read pressure
         let pressureByte1 = i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue) // MSB
-        
         let pressureByte2 = i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue + 1)
-
         let pressureByte3 = i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue + 2) // LSB (top four bits only)
         
         // Pressure readout is the top 20 bits of the three bytes
@@ -190,29 +162,26 @@ final class BME280Sensor: ScalesCore.Sensor {
         
         // Read temperature
         let temperatureByte1 = i2c.readByte(slaveID, command: DataRegisterAddress.temperatureData.rawValue) // MSB
-        
         let temperatureByte2 = i2c.readByte(slaveID, command: DataRegisterAddress.temperatureData.rawValue + 1)
-
         let temperatureByte3 = i2c.readByte(slaveID, command: DataRegisterAddress.temperatureData.rawValue + 2) // LSB (top four bits only)
 
         // Temperature readout is the top 20 bits of the three bytes
         let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 12) | (UInt32(temperatureByte2) << 4) | (UInt32(temperatureByte3) >> 4)
                 
-        let uncompData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, temperature: temp20BitUnsignedRepresentation, humidity: 0)
+        let uncompensatedData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, temperature: temp20BitUnsignedRepresentation, humidity: 0)
         
-        let temperatureAndPressure: (temperature: Double, pressure: Double) = withUnsafePointer(to: uncompData) { uncompPtr in
+        let temperatureAndPressure: (temperature: Double, pressure: Double) = withUnsafePointer(to: uncompensatedData) { uncompPtr in
             withUnsafeMutablePointer(to: &self.calibrationData) { calibDataPtr in
                 // Note: compensate_temperature() must be called before compensate_pressure()
                 // because it calculates and sets t_fine in the calibData struct
                 let temperature = compensate_temperature(uncompPtr, calibDataPtr)
-                let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Divide by 100 for Pascals to hPa / mb
+                let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Division by 100 to convert output in Pascals to hPa / mb
                 return (temperature: temperature, pressure: pressure)
             }
         }
         
         return [
             Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: Float(temperatureAndPressure.temperature)),
-            
             Reading(outputType: .barometricPressure(unit: .hPa), sensorLocation: self.location, sensorID: self.id, value: Float(temperatureAndPressure.pressure))
         ]
     }

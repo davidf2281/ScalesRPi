@@ -8,13 +8,14 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     typealias T = Float
     
     var id: String {
-        "MCP9600-" + String(deviceAddress)
+        "MCP9600-ID" + String(deviceAddress)
     }
     
     let location: ScalesCore.SensorLocation = .indoor(location: nil) // TODO: Set in init
     
     private let i2c: I2CInterface
     private let minUpdateInterval: TimeInterval
+    
     // I2C config
     private let deviceAddress: Int = 0x67
     private let configPointer: UInt8 = 0b00000110
@@ -22,6 +23,7 @@ final class MCP9600Sensor: ScalesCore.Sensor {
     private let revisionPointer: UInt8 = 0b00100000
     
     private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
+        
         guard let self else { return }
         
         let task = Task {

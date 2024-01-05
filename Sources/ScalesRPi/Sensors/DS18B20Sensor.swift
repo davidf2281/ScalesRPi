@@ -10,6 +10,12 @@ enum OversampleSetting {
 
 final class DS18B20Sensor: ScalesCore.Sensor {
     
+    public enum DS18B20Error: Error {
+        case updateIntervalTooShort
+        case readOneWireError
+        case noSlavesFound
+    }
+    
     typealias T = Float
     
     var id: String {
@@ -24,6 +30,7 @@ final class DS18B20Sensor: ScalesCore.Sensor {
     private let oversampleSetting: OversampleSetting
     
     private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
+        
         guard let self else { return }
         
         let task = Task {
@@ -43,12 +50,6 @@ final class DS18B20Sensor: ScalesCore.Sensor {
         continuation.onTermination = { @Sendable _ in
             task.cancel()
         }
-    }
-    
-    public enum DS18B20Error: Error {
-        case updateIntervalTooShort
-        case readOneWireError
-        case noSlavesFound
     }
     
     public init(onewire: OneWireInterface, location: ScalesCore.SensorLocation, minUpdateInterval: TimeInterval, oversampleSetting: OversampleSetting = .oversample(iterations: 16)) throws {

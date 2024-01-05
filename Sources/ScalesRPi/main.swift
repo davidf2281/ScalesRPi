@@ -13,7 +13,7 @@ do {
     fatalError("Could not create main")
 }
 
-// Setup shutdown handlers to handle SIGINT and SIGTERM
+// Configure shutdown handlers to handle SIGINT and SIGTERM
 signalQueue = DispatchQueue(label: "shutdown")
 makeSignalSource(SIGTERM, backlightPin: main.lcdBacklightPin)
 makeSignalSource(SIGINT, backlightPin: main.lcdBacklightPin)
@@ -46,12 +46,6 @@ struct Main {
         self.lcdBacklightPin?.direction = .OUT
         self.lcdBacklightPin?.value = 1
         
-        self.buttonAPin = gpios[.P5]!
-        buttonAPin.direction = .IN
-        buttonAPin.onChange({ buttonAPin in
-            print("Button A changed")
-        })
-        
         let dcPin = gpios[.P9]!
         dcPin.direction = .OUT
         let spi1 = SwiftyGPIO.hardwareSPIs(for: zero2W)![1]
@@ -64,6 +58,13 @@ struct Main {
         let indoorTempPressureHumiditySensor = BME280Sensor(i2c: i2c, location: .indoor(location: nil), minUpdateInterval: 60.0).erasedToAnySensor
         
         coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display)
+        
+        self.buttonAPin = gpios[.P5]!
+        buttonAPin.direction = .IN
+        buttonAPin.bounceTime = 0.25
+        buttonAPin.onRaising { [weak coordinator] buttonAPin in
+            print("Button A changed")
+        }
     }
 }
 
