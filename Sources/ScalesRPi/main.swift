@@ -63,7 +63,7 @@ struct Main {
         buttonAPin.direction = .IN
         buttonAPin.bounceTime = 0.25
         buttonAPin.onRaising { [weak coordinator] buttonAPin in
-            print("Button A changed")
+            coordinator?.buttonPressed()
         }
     }
 }
