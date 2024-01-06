@@ -5,6 +5,9 @@
 
 #include <stdint.h>
 
+// Adapted from the official BME280 API:
+// https://github.com/boschsensortec/BME280_driver
+
 struct bme280_uncomp_data
 {
     /*! Un-compensated pressure */

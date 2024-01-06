@@ -1,6 +1,9 @@
 
 #include "ScalesRPiC.h"
 
+// Adapted from the official BME280 API:
+// https://github.com/boschsensortec/BME280_driver
+
 double compensate_temperature(const struct bme280_uncomp_data *uncomp_data, struct bme280_calib_data *calib_data) {
     double var1;
     double var2;
