@@ -37,12 +37,6 @@ final class DS18B20Sensor: ScalesCore.Sensor {
             while(Task.isNotCancelled) {
                 let readingResult = self.getReading()
                 continuation.yield(readingResult)
-                switch readingResult {
-                    case .failure(let error):
-                        print("DS1820 error: \(error.localizedDescription)")
-                    default:
-                        break
-                }
                 try await Task.sleep(for: .seconds(self.minUpdateInterval))
             }
         }

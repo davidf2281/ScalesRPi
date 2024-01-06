@@ -3,7 +3,11 @@ import Foundation
 import ScalesCore
 import SwiftyGPIO
 
-final class MCP9600Sensor: ScalesCore.Sensor {    
+enum MCP9600Error: Error {
+    case i2cReadFailed
+}
+
+final class MCP9600Sensor: ScalesCore.Sensor {
     
     typealias T = Float
     
@@ -39,26 +43,33 @@ final class MCP9600Sensor: ScalesCore.Sensor {
         }
     }
     
-    init(i2c: I2CInterface, minUpdateInterval: TimeInterval) {
+    init(i2c: I2CInterface, minUpdateInterval: TimeInterval) throws {
         self.i2c = i2c
         self.minUpdateInterval = minUpdateInterval
         
         // Write all zeroes to the config register to ensure device is powered up
-        i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
+        try i2c.writeByte(deviceAddress, command: configPointer, value: 0b00000000)
     }
     
     private func getReading() -> Result<[Reading<T>], Error> {
-        i2c.writeByte(deviceAddress, value: tCPointer)
-        let temperatureWord = i2c.readWord(deviceAddress, command: tCPointer).byteSwapped
-        
-        // Our reading comes back as an unsigned int, but it represents
-        // a signed int so we need to convert accordingly
-        let signedValue = Int16(bitPattern: temperatureWord)
-        
-        // Default resolution of the MCP9600 is 0.0625C per lsb
-        let finalTemperature = Float(signedValue) * 0.0625
-        
-        return .success([Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: finalTemperature)])
+        do {
+            
+            try i2c.writeByte(deviceAddress, value: tCPointer)
+            
+            let temperatureWord = try i2c.readWord(deviceAddress, command: tCPointer).byteSwapped
+            
+            // Our reading comes back as an unsigned int, but it represents
+            // a signed int so we need to convert accordingly
+            let signedValue = Int16(bitPattern: temperatureWord)
+            
+            // Default resolution of the MCP9600 is 0.0625C per lsb
+            let finalTemperature = Float(signedValue) * 0.0625
+            
+            return .success([Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: finalTemperature)])
+            
+        } catch {
+            return .failure(MCP9600Error.i2cReadFailed)
+        }
     }
 }
 
