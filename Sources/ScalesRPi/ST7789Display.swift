@@ -20,8 +20,8 @@ struct ST7789Display: ScalesCore.Display {
         try self.st7789.initializeDisplay()
     }
     
-    func showFrame(_ frameBuffer: FrameBuffer) throws {
-        let packedPixels = pixelsPacked565(pixels24: frameBuffer.pixels)
+    func showFrame(_ frameBuffer: FrameBuffer) async throws {
+        let packedPixels = await pixelsPacked565(pixels24: frameBuffer.pixels)
         
         do {
             try self.st7789.displayBuffer(packedPixels)
