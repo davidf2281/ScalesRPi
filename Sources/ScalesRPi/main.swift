@@ -25,6 +25,7 @@ struct Main {
     let display: ST7789Display
     let lcdBacklightPin: GPIO?
     let buttonAPin: GPIO
+    var buttonPressedTask: Task<Void, Error>?
     
     init() throws {
         
@@ -57,14 +58,12 @@ struct Main {
         let i2c = SwiftyGPIO.hardwareI2Cs(for: zero2W)![1]
         let indoorTempPressureHumiditySensor = try BME280Sensor(i2c: i2c, location: .indoor(location: nil), minUpdateInterval: 60.0).erasedToAnySensor
         
-        coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display)
-        
         self.buttonAPin = gpios[.P5]!
         buttonAPin.direction = .IN
         buttonAPin.bounceTime = 0.25
-        buttonAPin.onRaising { [weak coordinator] buttonAPin in
-            coordinator?.buttonPressed()
-        }
+        let buttonHandler = RPiButtonHandler(button: buttonAPin)
+        
+        coordinator = try ScalesCore.Coordinator(sensors: [outdoorTempSensor, indoorTempPressureHumiditySensor], display: display, buttonHandler: buttonHandler)
     }
 }
 
@@ -89,3 +88,34 @@ func makeSignalSource(_ code: Int32, backlightPin: GPIO?) {
     source.resume()
     signal(code, SIG_IGN)
 }
+
+class RPiButtonHandler: ButtonHandler {
+    let button: GPIO
+    var buttonPushHandler: ((ButtonPress) -> Void)?
+
+    init(button: GPIO) {
+        self.button = button
+        button.onRaising { [weak self] button in
+            if let buttonPushHandler = self?.buttonPushHandler {
+                buttonPushHandler(ButtonPress())
+            }
+        }
+    }
+    
+    func startMonitoring() {}
+    func stopMonitoring() {}
+
+    var buttonPresses: AsyncStream<ButtonPress> {
+        AsyncStream { continuation in
+            let monitor = RPiButtonHandler(button: self.button)
+            monitor.buttonPushHandler = { buttonPress in
+                continuation.yield(buttonPress)
+            }
+            continuation.onTermination = { @Sendable _ in
+                 monitor.stopMonitoring()
+            }
+            monitor.startMonitoring()
+        }
+    }
+}
+
