@@ -6,6 +6,7 @@ import SwiftyGPIO
 let signalQueue: DispatchQueue
 let main: Main
 var coordinator: ScalesCore.Coordinator<Float>?
+let logger = Logger(name: "ScalesRPi main")
 
 do {
     main = try Main()
@@ -24,8 +25,7 @@ struct Main {
     
     let display: ST7789Display
     let lcdBacklightPin: GPIO?
-    let buttonAPin: GPIO
-    var buttonPressedTask: Task<Void, Error>?
+    private let buttonAPin: GPIO
     
     init() throws {
         
@@ -96,6 +96,7 @@ class RPiButtonHandler: ButtonHandler {
     init(button: GPIO) {
         self.button = button
         button.onRaising { [weak self] button in
+            logger.log("Button press")
             if let buttonPushHandler = self?.buttonPushHandler {
                 buttonPushHandler(ButtonPress())
             }
