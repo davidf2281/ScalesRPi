@@ -6,6 +6,11 @@ import ScalesRPiC
 
 final class BME280Sensor: ScalesCore.Sensor {
     
+    enum DeviceAddress: Int {
+        case low = 0x76
+        case high = 0x77
+    }
+    
     enum ReadError: Error {
         case readSensorFailed
     }
@@ -54,7 +59,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     
     let location: ScalesCore.SensorLocation
     
-    private let slaveID: Int = 0x76
+    private let slaveID: Int
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
     private var calibrationData: bme280_calib_data // var because t_fine needs be mutable
@@ -76,8 +81,9 @@ final class BME280Sensor: ScalesCore.Sensor {
         }
     }
     
-    init(i2c: I2CInterface, location: ScalesCore.SensorLocation, minUpdateInterval: TimeInterval) throws {
+    init(i2c: I2CInterface, deviceAddress: DeviceAddress = .low, location: ScalesCore.SensorLocation, minUpdateInterval: TimeInterval) throws {
         self.i2c = i2c
+        self.slaveID = deviceAddress.rawValue
         self.location = location
         self.minUpdateInterval = minUpdateInterval
         try Self.resetDevice(i2c: i2c, slaveID: slaveID)
