@@ -96,7 +96,6 @@ class RPiButtonHandler: ButtonHandler {
     init(button: GPIO) {
         self.button = button
         button.onRaising { [weak self] button in
-            logger.log("Button press")
             if let buttonPushHandler = self?.buttonPushHandler {
                 buttonPushHandler(ButtonPress())
             }
