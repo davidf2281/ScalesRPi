@@ -98,27 +98,35 @@ final class BME280Sensor: ScalesCore.Sensor {
     }
     
     private static func readCalibrationData(i2c: I2CInterface, slaveID: Int) throws -> bme280_calib_data {
+        let logger = Logger(name: "BME 280 calib")
+        // Read temperature compensation values
+        let t1 = try i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
+        logger.log("T1 as currently used: \(t1)")
+        let t1_1 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
+        let t1_2 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue + 1)
+        logger.log("0x88: \(t1_1), 0x89: \(t1_2)")
+        logger.log("t1 assuming 0x88 is LSB: \( (UInt32(t1_2) << 8) | UInt32(t1_1) )")
+        logger.log("t1 assuming 0x88 is MSB: \( (UInt32(t1_1) << 8) | UInt32(t1_2) )")
+
+        let t2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT2.rawValue))
+        let t3 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT3.rawValue))
         
         // Read pressure compensation values
         let p1 = try i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP1.rawValue)
         let p2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP2.rawValue))
         let p3 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP3.rawValue))
         let p4 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP4.rawValue))
-        let p5 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP5.rawValue))
+        let p5 = try Int16(bitPattern: i2c.readWord(slaveID, command:  CalibrationRegisterBaseAddress.digP5.rawValue))
         let p6 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP6.rawValue))
         let p7 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP7.rawValue))
         let p8 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP8.rawValue))
         let p9 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digP9.rawValue))
         
-        // Read temperature compensation values
-        let t1 = try i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
-        let t2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT2.rawValue))
-        let t3 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT3.rawValue))
-        
         // Read humidity compensation values
         let h1 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH1.rawValue)
         let h2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH2.rawValue))
         let h3 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH3.rawValue)
+        // h4 is bits 11-4 of base address, bits 3:0 of base address + 1
         let h4 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue))
         let h5 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH5.rawValue))
         let h6 = try Int8(bitPattern:i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH6.rawValue))
