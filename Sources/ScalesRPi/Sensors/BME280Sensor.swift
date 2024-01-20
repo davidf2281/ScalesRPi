@@ -118,12 +118,13 @@ final class BME280Sensor: ScalesCore.Sensor {
         let h2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH2.rawValue))
         let h3 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH3.rawValue)
         
-        // h4 is bits 11-4 of base address, bits 3:0 of base address + 1
+        // h4's most-significants bits (bits 11-4) are byte 0xE4; its least-significant (bits 3-0) are bits 3-0 of 0xE5.
         let h4_msbits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue)
         let h4_h5_shared_bits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue + 1)
         let h4BitPattern = (UInt16(h4_msbits) << 4) | (UInt16(h4_h5_shared_bits & 0b00001111))
         let h4 = Int16(bitPattern: h4BitPattern)
         
+        // h5's least-significants bits (bits 3-0) are 0xE5 bits 7-4; its most-significant (bits 11-4) are byte 0xE6.
         let h5_lsbits = h4_h5_shared_bits >> 4
         let h5_msbits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH5.rawValue + 1)
         let h5_bitPattern = (UInt16(h5_msbits) << 4) | UInt16(h5_lsbits)
