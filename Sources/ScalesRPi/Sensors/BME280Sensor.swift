@@ -202,6 +202,7 @@ final class BME280Sensor: ScalesCore.Sensor {
                 let temperature = compensate_temperature(uncompPtr, calibDataPtr)
                 let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Division by 100 to convert output in Pascals to hPa / mb
                 let humidity = compensate_humidity(uncompPtr, calibDataPtr)
+                logger.log("Humidity: \(humidity)")
                 return (temperature: temperature, pressure: pressure, humidity: humidity)
             }
         }
