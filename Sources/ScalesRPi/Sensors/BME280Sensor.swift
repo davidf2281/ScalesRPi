@@ -64,7 +64,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
     private var calibrationData: bme280_calib_data // var because t_fine needs be mutable
-    private let logger = Logger(name: self.id)
+    private let logger = Logger(name: "BME280")
     
     private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
         
