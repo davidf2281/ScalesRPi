@@ -98,16 +98,8 @@ final class BME280Sensor: ScalesCore.Sensor {
     }
     
     private static func readCalibrationData(i2c: I2CInterface, slaveID: Int) throws -> bme280_calib_data {
-        let logger = Logger(name: "BME 280 calib")
         // Read temperature compensation values
         let t1 = try i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
-        logger.log("T1 as currently used: \(t1)")
-        let t1_1 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue)
-        let t1_2 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digT1.rawValue + 1)
-        logger.log("0x88: \(t1_1), 0x89: \(t1_2)")
-        logger.log("t1 assuming 0x88 is LSB: \( (UInt32(t1_2) << 8) | UInt32(t1_1) )")
-        logger.log("t1 assuming 0x88 is MSB: \( (UInt32(t1_1) << 8) | UInt32(t1_2) )")
-
         let t2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT2.rawValue))
         let t3 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT3.rawValue))
         
@@ -126,9 +118,18 @@ final class BME280Sensor: ScalesCore.Sensor {
         let h1 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH1.rawValue)
         let h2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH2.rawValue))
         let h3 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH3.rawValue)
+        
         // h4 is bits 11-4 of base address, bits 3:0 of base address + 1
-        let h4 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue))
-        let h5 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH5.rawValue))
+        let h4_msbits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue)
+        let h4_h5_shared_bits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue + 1)
+        let h4BitPattern = (UInt16(h4_msbits) << 4) | (UInt16(h4_h5_shared_bits & 0b00001111))
+        let h4 = Int16(bitPattern: h4BitPattern)
+        
+        let h5_lsbits = h4_h5_shared_bits >> 4
+        let h5_msbits = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH5.rawValue + 1)
+        let h5_bitPattern = (UInt16(h5_msbits) << 4) | UInt16(h5_lsbits)
+        let h5 = Int16(bitPattern: h5_bitPattern)
+        
         let h6 = try Int8(bitPattern:i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH6.rawValue))
         
         return bme280_calib_data(dig_t1: t1,
