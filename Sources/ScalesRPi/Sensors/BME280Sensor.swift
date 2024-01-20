@@ -181,9 +181,9 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Temperature readout is the top 20 bits of the three bytes
         let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 12) | (UInt32(temperatureByte2) << 4) | (UInt32(temperatureByte3) >> 4)
                 
-        // Read humidity
-        let humidityByte1 = try i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue) // MSB
-        let humidityByte2 = try i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue + 1) // LSB
+        // Read humidity (16 bits in two bytes)
+        let humidityByte1 = try i2c.readByte(slaveID, command: DataRegisterAddress.humidityData.rawValue) // MSB
+        let humidityByte2 = try i2c.readByte(slaveID, command: DataRegisterAddress.humidityData.rawValue + 1) // LSB
         let humidity16BitUnsignedRepresentation: UInt32 = (UInt32(humidityByte1) << 8) | UInt32(humidityByte2)
         
         let uncompensatedData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, 
