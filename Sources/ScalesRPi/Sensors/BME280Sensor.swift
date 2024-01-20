@@ -49,6 +49,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     enum DataRegisterAddress: UInt8 {
         case pressureData = 0xF7
         case temperatureData = 0xFA
+        case humidityData = 0xFD
     }
     
     typealias T = Float
@@ -113,6 +114,14 @@ final class BME280Sensor: ScalesCore.Sensor {
         let t2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT2.rawValue))
         let t3 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digT3.rawValue))
         
+        // Read humidity compensation values
+        let h1 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH1.rawValue)
+        let h2 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH2.rawValue))
+        let h3 = try i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH3.rawValue)
+        let h4 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH4.rawValue))
+        let h5 = try Int16(bitPattern: i2c.readWord(slaveID, command: CalibrationRegisterBaseAddress.digH5.rawValue))
+        let h6 = try Int8(bitPattern:i2c.readByte(slaveID, command: CalibrationRegisterBaseAddress.digH6.rawValue))
+        
         return bme280_calib_data(dig_t1: t1,
                                  dig_t2: t2,
                                  dig_t3: t3,
@@ -125,12 +134,12 @@ final class BME280Sensor: ScalesCore.Sensor {
                                  dig_p7: p7,
                                  dig_p8: p8,
                                  dig_p9: p9,
-                                 dig_h1: 0,
-                                 dig_h2: 0,
-                                 dig_h3: 0,
-                                 dig_h4: 0,
-                                 dig_h5: 0,
-                                 dig_h6: 0,
+                                 dig_h1: h1,
+                                 dig_h2: h2,
+                                 dig_h3: h3,
+                                 dig_h4: h4,
+                                 dig_h5: h5,
+                                 dig_h6: h6,
                                  t_fine: 0)
     }
     
@@ -146,7 +155,7 @@ final class BME280Sensor: ScalesCore.Sensor {
     private func sensorReadings() async throws -> [Reading<T>] {
               
         // Write humidity config, which acccording to the BME280 datasheet must be done before writing measurement config
-        let humidityConfig: UInt8 = 0 // Skip humidity measurement
+        let humidityConfig: UInt8 = 0b011 // 4x humidity oversampling
         try i2c.writeByte(slaveID, command: ControlRegisterAddress.ctrlHum.rawValue, value: humidityConfig)
         
         // Write measurement config to put the device into forced mode, which will start a measurement
@@ -172,21 +181,30 @@ final class BME280Sensor: ScalesCore.Sensor {
         // Temperature readout is the top 20 bits of the three bytes
         let temp20BitUnsignedRepresentation: UInt32 = (UInt32(temperatureByte1) << 12) | (UInt32(temperatureByte2) << 4) | (UInt32(temperatureByte3) >> 4)
                 
-        let uncompensatedData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, temperature: temp20BitUnsignedRepresentation, humidity: 0)
+        // Read humidity
+        let humidityByte1 = try i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue) // MSB
+        let humidityByte2 = try i2c.readByte(slaveID, command: DataRegisterAddress.pressureData.rawValue + 1) // LSB
+        let humidity16BitUnsignedRepresentation: UInt32 = (UInt32(humidityByte1) << 8) | UInt32(humidityByte2)
         
-        let temperatureAndPressure: (temperature: Double, pressure: Double) = withUnsafePointer(to: uncompensatedData) { uncompPtr in
+        let uncompensatedData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation, 
+                                                   temperature: temp20BitUnsignedRepresentation,
+                                                   humidity: humidity16BitUnsignedRepresentation)
+        
+        let readings: (temperature: Double, pressure: Double, humidity: Double) = withUnsafePointer(to: uncompensatedData) { uncompPtr in
             withUnsafeMutablePointer(to: &self.calibrationData) { calibDataPtr in
                 // Note: compensate_temperature() must be called before compensate_pressure()
                 // because it calculates and sets t_fine in the calibData struct
                 let temperature = compensate_temperature(uncompPtr, calibDataPtr)
                 let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Division by 100 to convert output in Pascals to hPa / mb
-                return (temperature: temperature, pressure: pressure)
+                let humidity = compensate_humidity(uncompPtr, calibDataPtr)
+                return (temperature: temperature, pressure: pressure, humidity: humidity)
             }
         }
         
         return [
-            Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: Float(temperatureAndPressure.temperature)),
-            Reading(outputType: .barometricPressure(unit: .hPa), sensorLocation: self.location, sensorID: self.id, value: Float(temperatureAndPressure.pressure))
+            Reading(outputType: .temperature(unit: .celsius), sensorLocation: self.location, sensorID: self.id, value: Float(readings.temperature)),
+            Reading(outputType: .barometricPressure(unit: .hPa), sensorLocation: self.location, sensorID: self.id, value: Float(readings.pressure)),
+            Reading(outputType: .humidity(unit: .rhd), sensorLocation: self.location, sensorID: self.id, value: Float(readings.humidity))
         ]
     }
 }

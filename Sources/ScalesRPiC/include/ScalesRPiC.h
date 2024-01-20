@@ -85,4 +85,7 @@ double compensate_temperature(const struct bme280_uncomp_data *uncomp_data, stru
 double compensate_pressure(const struct bme280_uncomp_data *uncomp_data,
                            const struct bme280_calib_data *calib_data);
 
+double compensate_humidity(const struct bme280_uncomp_data *uncomp_data,
+                           const struct bme280_calib_data *calib_data);
+
 #endif

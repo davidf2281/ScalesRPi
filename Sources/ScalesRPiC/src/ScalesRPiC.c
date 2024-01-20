@@ -73,3 +73,37 @@ double compensate_pressure(const struct bme280_uncomp_data *uncomp_data,
 
     return pressure;
 }
+
+double compensate_humidity(const struct bme280_uncomp_data *uncomp_data,
+                                  const struct bme280_calib_data *calib_data)
+{
+    double humidity;
+    double humidity_min = 0.0;
+    double humidity_max = 100.0;
+    double var1;
+    double var2;
+    double var3;
+    double var4;
+    double var5;
+    double var6;
+
+    var1 = ((double)calib_data->t_fine) - 76800.0;
+    var2 = (((double)calib_data->dig_h4) * 64.0 + (((double)calib_data->dig_h5) / 16384.0) * var1);
+    var3 = uncomp_data->humidity - var2;
+    var4 = ((double)calib_data->dig_h2) / 65536.0;
+    var5 = (1.0 + (((double)calib_data->dig_h3) / 67108864.0) * var1);
+    var6 = 1.0 + (((double)calib_data->dig_h6) / 67108864.0) * var1 * var5;
+    var6 = var3 * var4 * (var5 * var6);
+    humidity = var6 * (1.0 - ((double)calib_data->dig_h1) * var6 / 524288.0);
+
+    if (humidity > humidity_max)
+    {
+        humidity = humidity_max;
+    }
+    else if (humidity < humidity_min)
+    {
+        humidity = humidity_min;
+    }
+
+    return humidity;
+}
