@@ -64,7 +64,6 @@ final class BME280Sensor: ScalesCore.Sensor {
     private let minUpdateInterval: TimeInterval
     private let i2c: I2CInterface
     private var calibrationData: bme280_calib_data // var because t_fine needs be mutable
-    private let logger = Logger(name: "BME280")
     
     private(set) lazy var readings = AsyncStream<Result<[Reading<T>], Error>> { [weak self] continuation in
         
@@ -196,10 +195,6 @@ final class BME280Sensor: ScalesCore.Sensor {
         let humidityByte2 = try i2c.readByte(slaveID, command: DataRegisterAddress.humidityData.rawValue + 1) // LSB
         let humidity16BitUnsignedRepresentation: UInt32 = (UInt32(humidityByte1) << 8) | UInt32(humidityByte2)
         
-        logger.log("byte 1: \(humidityByte1)")
-        logger.log("byte 2: \(humidityByte2)")
-        logger.log("result: \(humidity16BitUnsignedRepresentation)")
-        
         let uncompensatedData = bme280_uncomp_data(pressure: pressure20BitUnsignedRepresentation,
                                                    temperature: temp20BitUnsignedRepresentation,
                                                    humidity: humidity16BitUnsignedRepresentation)
@@ -211,7 +206,6 @@ final class BME280Sensor: ScalesCore.Sensor {
                 let temperature = compensate_temperature(uncompPtr, calibDataPtr)
                 let pressure = compensate_pressure(uncompPtr, calibDataPtr) / 100 // Division by 100 to convert output in Pascals to hPa / mb
                 let humidity = compensate_humidity(uncompPtr, calibDataPtr)
-                logger.log("Humidity: \(humidity)")
                 return (temperature: temperature, pressure: pressure, humidity: humidity)
             }
         }
